@@ -226,26 +226,42 @@ function get_s3_client(): ?S3Client
             if (!preg_match('#^https?://#', $endpoint)) {
                 $endpoint = 'https://' . $endpoint;
             }
-            $clientConfig['endpoint'] = rtrim($endpoint, '/');
-            // If the configured endpoint host already contains the bucket name
-            // (e.g., bucket.region.linodeobjects.com), use virtual-host style
-            // (do not enable path-style). Otherwise, enable path-style so the
-            // SDK will include the /{bucket}/ path when making requests.
-            $host = parse_url($clientConfig['endpoint'], PHP_URL_HOST) ?: '';
+            // Normalize the endpoint trimmed value
+            $endpoint = rtrim($endpoint, '/');
+            $host = parse_url($endpoint, PHP_URL_HOST) ?: '';
+            $path = parse_url($endpoint, PHP_URL_PATH) ?: '';
             $bucket = (string)($aws['bucket'] ?? '');
             $endpointIncludesBucket = false;
             if ($bucket !== '' && $host !== '') {
-                // If the host starts with the bucket name (common virtual-host)
                 if (stripos($host, $bucket . '.') === 0) {
                     $endpointIncludesBucket = true;
                 }
-                // Or if the host contains /{bucket} in the path, assume includes bucket
-                $path = parse_url($clientConfig['endpoint'], PHP_URL_PATH) ?: '';
                 if ($path !== '' && stripos($path, '/' . $bucket) !== false) {
                     $endpointIncludesBucket = true;
                 }
             }
-            $clientConfig['use_path_style_endpoint'] = !$endpointIncludesBucket;
+            // If we detected the endpoint host includes the bucket as prefix
+            // (e.g., yourwedding.au-mel-1.linodeobjects.com), configure the
+            // S3 client to use the provider root endpoint and virtual-host
+            // addressing so the effective request host is correct (bucket.host).
+            if ($endpointIncludesBucket && $host !== '' && $bucket !== '') {
+                // Remove the bucket prefix from host to derive the root host
+                if (stripos($host, $bucket . '.') === 0) {
+                    $rootHost = substr($host, strlen($bucket) + 1);
+                    if ($rootHost !== false && $rootHost !== '') {
+                        $endpoint = (parse_url($endpoint, PHP_URL_SCHEME) ?: 'https') . '://' . $rootHost;
+                    }
+                }
+                $clientConfig['endpoint'] = $endpoint;
+                // Use virtual-host addressing to place the bucket on the host
+                $clientConfig['use_path_style_endpoint'] = false;
+            } else {
+                // If the endpoint did not include the bucket prefix, default to
+                // path-style addressing for non-AWS endpoints so bucket appears
+                // in the path, e.g. https://endpoint/bucket/obj
+                $clientConfig['endpoint'] = $endpoint;
+                $clientConfig['use_path_style_endpoint'] = true;
+            }
         }
         // If we have an endpoint, perform a quick DNS resolution check to avoid
         // the AWS SDK throwing cURL error 6 when an invalid host is configured.
@@ -440,4 +456,60 @@ function ensure_client_columns(mysqli $conn): void
             $conn->query('ALTER TABLE clients ADD COLUMN ' . $conn->real_escape_string($col) . ' ' . $definition);
         }
     }
+}
+
+/**
+ * Return the endpoint host the SDK will use for S3 operations. This mirrors
+ * the logic in get_s3_client() so we can show diagnostics without creating a
+ * client connection.
+ */
+function get_s3_effective_endpoint(): ?string
+{
+    global $config;
+    $aws = $config['aws'];
+    $endpoint = trim($aws['s3_endpoint'] ?? '') ?: trim($aws['s3_url'] ?? '');
+    if ($endpoint === '') {
+        return null;
+    }
+    if (!preg_match('#^https?://#', $endpoint)) {
+        $endpoint = 'https://' . $endpoint;
+    }
+    $derived = get_derived_s3_endpoint();
+    if ($derived !== null) {
+        // If derived endpoint included a bucket host, the SDK will use the
+        // provider root (bucket removed) for its endpoint. We should still
+        // return the SDK-apparent endpoint for diagnostics, which is the
+        // provider root with scheme.
+        $derivedHost = parse_url($derived, PHP_URL_HOST) ?: $derived;
+        if (stripos($derivedHost, (string)$aws['bucket'] . '.') === 0) {
+            // remove bucket prefix
+            $rootHost = substr($derivedHost, strlen((string)$aws['bucket']) + 1);
+            return 'https://' . $rootHost;
+        }
+    }
+    return $endpoint;
+}
+
+function get_s3_effective_base_url(): ?string
+{
+    // This is the URL used to build public object links (CDN or bucket-host).
+    global $config;
+    $aws = $config['aws'];
+    $url = trim($aws['s3_url'] ?? '');
+    if ($url !== '') {
+        if (!preg_match('#^https?://#', $url)) {
+            $url = 'https://' . $url;
+        }
+        $derived = get_derived_s3_endpoint();
+        if ($derived !== null) {
+            return $derived;
+        }
+        return rtrim($url, '/');
+    }
+    // If s3_url isn't set, try deriving a bucket-based host
+    $derived = get_derived_s3_endpoint();
+    if ($derived !== null) {
+        return $derived;
+    }
+    return null;
 }

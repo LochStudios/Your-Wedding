@@ -280,6 +280,17 @@ if ($accessGranted) {
             } else {
                 $s3Error = 'Unable to list gallery. ' . $exception->getMessage();
             }
+            // If the user is an admin, append diagnostics showing the endpoint and base URL
+            if (!empty($_SESSION['admin_logged_in'])) {
+                $endpoint = get_s3_effective_endpoint();
+                $baseUrl = get_s3_effective_base_url();
+                if ($endpoint) {
+                    $s3Error .= "\n\nEffective S3 SDK endpoint: {$endpoint}";
+                }
+                if ($baseUrl) {
+                    $s3Error .= "\nDirect object base URL: {$baseUrl}";
+                }
+            }
         }
     }
 }
