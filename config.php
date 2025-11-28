@@ -58,7 +58,8 @@ CREATE TABLE IF NOT EXISTS admins (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(191) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    force_password_reset TINYINT(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 SQL;
 
@@ -75,8 +76,19 @@ SQL;
 
     $conn->query($adminSql);
     $conn->query($albumSql);
-
+    ensure_admin_column($conn);
     ensure_default_admin($conn);
+}
+
+function ensure_admin_column(mysqli $conn): void
+{
+    $result = $conn->query("SHOW COLUMNS FROM admins LIKE 'force_password_reset'");
+    if (!$result) {
+        return;
+    }
+    if ($result->num_rows === 0) {
+        $conn->query('ALTER TABLE admins ADD COLUMN force_password_reset TINYINT(1) NOT NULL DEFAULT 0');
+    }
 }
 
 function ensure_default_admin(mysqli $conn): void
@@ -89,7 +101,7 @@ function ensure_default_admin(mysqli $conn): void
     if ($count === 0) {
         $defaultUser = 'admin';
         $defaultPasswordHash = password_hash('admin1234', PASSWORD_DEFAULT);
-        $insert = $conn->prepare('INSERT INTO admins (username, password_hash) VALUES (?, ?)');
+        $insert = $conn->prepare('INSERT INTO admins (username, password_hash, force_password_reset) VALUES (?, ?, 1)');
         $insert->bind_param('ss', $defaultUser, $defaultPasswordHash);
         $insert->execute();
         $insert->close();
