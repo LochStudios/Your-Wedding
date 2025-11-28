@@ -9,7 +9,7 @@ if ($slug === '') {
 }
 
 $conn = get_db_connection();
-$stmt = $conn->prepare('SELECT a.client_id, a.client_names, a.album_password, a.s3_folder_path, c.display_name FROM albums a LEFT JOIN clients c ON c.id = a.client_id WHERE a.slug = ? LIMIT 1');
+$stmt = $conn->prepare("SELECT a.client_id, a.client_names, a.album_password, a.s3_folder_path, COALESCE(c.display_name, CONCAT(c.title1, ' & ', c.title2, ' ', c.family_name)) AS client_display_name FROM albums a LEFT JOIN clients c ON c.id = a.client_id WHERE a.slug = ? LIMIT 1");
 $stmt->bind_param('s', $slug);
 $stmt->execute();
 $stmt->bind_result($clientId, $clientNames, $albumPassword, $s3FolderPath, $clientDisplayName);

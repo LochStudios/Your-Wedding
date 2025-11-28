@@ -18,7 +18,7 @@ A lightweight, custom PHP gallery for wedding clients. Admins create albums that
 | `index.php` | Marketing landing page with hero, services, pricing, and contact sections. |
 | `style.css` | Custom Bulma overrides and gallery/lightbox styling. |
 | `login.php` | Admin login using bcrypt + sessions. |
-| `create_client.php` | Create client accounts for multi-gallery access (admin-only). |
+| `create_client.php` | Create client accounts for multi-gallery access (admin-only). Includes title dropdowns and family name so display names read like "Mr & Mrs Smith". |
 | `client_login.php` | Client login page — allows clients to sign-in and access all their assigned galleries. |
 | `forgot_password.php` | Request an admin password reset; generates a short-lived reset token. |
 | `reset_password.php` | Complete a password reset using a token. |

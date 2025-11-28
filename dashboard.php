@@ -20,7 +20,7 @@ if (!empty($_GET['delete_id'])) {
 }
 
 $albums = [];
-$stmt = $conn->prepare('SELECT a.id, a.client_id, a.client_names, a.slug, a.s3_folder_path, a.created_at, c.display_name FROM albums a LEFT JOIN clients c ON c.id = a.client_id ORDER BY a.created_at DESC');
+$stmt = $conn->prepare("SELECT a.id, a.client_id, a.client_names, a.slug, a.s3_folder_path, a.created_at, COALESCE(c.display_name, CONCAT(c.title1, ' & ', c.title2, ' ', c.family_name)) AS display_name FROM albums a LEFT JOIN clients c ON c.id = a.client_id ORDER BY a.created_at DESC");
 $stmt->execute();
 $stmt->bind_result($albumId, $clientId, $clientNames, $slug, $s3FolderPath, $createdAt, $clientDisplay);
 while ($stmt->fetch()) {

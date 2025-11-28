@@ -147,10 +147,10 @@ function slugify(string $text): string
                                     <select name="client_id">
                                         <option value="">-- None --</option>
                                         <?php
-                                        // fetch clients for selection
-                                        $stmt = $conn->prepare('SELECT id, display_name, username FROM clients ORDER BY created_at DESC');
+                                        // fetch clients for selection (compute the display label if needed)
+                                        $stmt = $conn->prepare("SELECT id, username, COALESCE(display_name, CONCAT(title1, ' & ', title2, ' ', family_name)) AS display_name FROM clients ORDER BY created_at DESC");
                                         $stmt->execute();
-                                        $stmt->bind_result($cid, $dname, $cusername);
+                                        $stmt->bind_result($cid, $cusername, $dname);
                                         while ($stmt->fetch()): ?>
                                                 <option value="<?php echo (int) $cid; ?>" <?php echo ($album['client_id'] === (int) $cid) ? 'selected' : ''; ?>><?php echo htmlspecialchars($dname) . ($cusername ? ' (' . htmlspecialchars($cusername) . ')' : ''); ?></option>
                                         <?php endwhile; $stmt->close(); ?>

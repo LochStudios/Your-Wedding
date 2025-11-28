@@ -6,6 +6,14 @@ if (empty($_SESSION['client_logged_in'])) {
 }
 $clientId = (int) $_SESSION['client_logged_in'];
 $conn = get_db_connection();
+// Fetch client display name
+$clientDisplay = '';
+$cstmt = $conn->prepare("SELECT COALESCE(display_name, CONCAT(title1, ' & ', title2, ' ', family_name)) FROM clients WHERE id = ? LIMIT 1");
+$cstmt->bind_param('i', $clientId);
+$cstmt->execute();
+$cstmt->bind_result($clientDisplayName);
+$cstmt->fetch();
+$cstmt->close();
 // Fetch albums belonging to this client
 $albums = [];
 $stmt = $conn->prepare('SELECT id, client_names, slug, s3_folder_path, created_at FROM albums WHERE client_id = ? ORDER BY created_at DESC');
@@ -42,11 +50,11 @@ $stmt->close();
                             <div class="card-content">
                                 <div class="level">
                                     <div class="level-left">
-                                        <div>
-                                            <h1 class="title">Your Galleries</h1>
-                                            <p class="subtitle">All galleries assigned to your account.</p>
-                                        </div>
-                                    </div>
+                                                    <div>
+                                                        <h1 class="title">Your Galleries</h1>
+                                                        <p class="subtitle">All galleries assigned to <strong><?php echo htmlspecialchars($clientDisplayName ?? 'you'); ?></strong>.</p>
+                                                    </div>
+                                                </div>
                                     <div class="level-right">
                                         <a class="button is-light" href="change_client_password.php">Change Password</a>
                                         <a class="button is-light" href="client_logout.php">Sign Out</a>

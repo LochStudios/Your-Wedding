@@ -123,6 +123,9 @@ CREATE TABLE IF NOT EXISTS clients (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(191) UNIQUE DEFAULT NULL,
     display_name VARCHAR(255) NOT NULL,
+    title1 VARCHAR(16) DEFAULT 'Mr',
+    title2 VARCHAR(16) DEFAULT 'Mrs',
+    family_name VARCHAR(255) DEFAULT NULL,
     password_hash VARCHAR(255) NOT NULL,
     password_reset_token_hash VARCHAR(128) DEFAULT NULL,
     password_reset_expires_at DATETIME DEFAULT NULL,
@@ -130,6 +133,7 @@ CREATE TABLE IF NOT EXISTS clients (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 SQL;
     $conn->query($clientSql);
+    ensure_client_columns($conn);
     $conn->query($albumSql);
     // Ensure albums have client_id column to link galleries to a client account (nullable)
     try {
@@ -228,4 +232,23 @@ function is_admin_portal_visible(): bool
 {
     global $config;
     return !empty($config['features']['admin_portal_visible']);
+}
+
+function ensure_client_columns(mysqli $conn): void
+{
+    $columnsToEnsure = [
+        'title1' => "VARCHAR(16) DEFAULT 'Mr'",
+        'title2' => "VARCHAR(16) DEFAULT 'Mrs'",
+        'family_name' => "VARCHAR(255) DEFAULT NULL",
+        'display_name' => "VARCHAR(255) NOT NULL",
+    ];
+    foreach ($columnsToEnsure as $col => $definition) {
+        $result = $conn->query("SHOW COLUMNS FROM clients LIKE '" . $conn->real_escape_string($col) . "'");
+        if (!$result) {
+            continue;
+        }
+        if ($result->num_rows === 0) {
+            $conn->query('ALTER TABLE clients ADD COLUMN ' . $conn->real_escape_string($col) . ' ' . $definition);
+        }
+    }
 }
