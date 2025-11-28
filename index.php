@@ -132,7 +132,7 @@ require_once __DIR__ . '/config.php';
                 </div>
             </div>
         </section>
-        <section id="contact" class="section has-background-light">
+        <section id="contact" class="section">
             <div class="container">
                 <h2 class="title">Let's talk</h2>
                 <div class="columns">
