@@ -112,6 +112,7 @@ function slugify(string $text): string
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title><?php echo $editing ? 'Edit Album' : 'Create Album'; ?> | Your Wedding</title>
+        <link rel="icon" href="4803712.png" type="image/png" />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
         <link rel="stylesheet" href="style.css?v=<?php echo uuidv4(); ?>" />

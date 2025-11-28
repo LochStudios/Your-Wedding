@@ -152,6 +152,7 @@ if ($album === null) {
             <meta charset="UTF-8" />
             <meta name="viewport" content="width=device-width, initial-scale=1" />
             <title>Album not found | Your Wedding</title>
+            <link rel="icon" href="4803712.png" type="image/png" />
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.css" />
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
             <link rel="stylesheet" href="style.css?v=<?php echo uuidv4(); ?>" />
@@ -416,7 +417,6 @@ if ($accessGranted) {
                 const closeBtn = document.getElementById('lightboxClose');
                 const downloadBtn = document.getElementById('lightboxDownload');
                 const downloadAllBtn = document.getElementById('downloadAllBtn');
-
                 const thumbs = Array.from(document.querySelectorAll('.gallery-grid img[data-full]'));
                 const images = thumbs.map(t => t.dataset.full).filter(Boolean);
                 let currentIndex = 0;
@@ -452,7 +452,6 @@ if ($accessGranted) {
                         overlay.classList.remove('active');
                     }
                 });
-
                 document.addEventListener('keydown', (e) => {
                     if (!overlay.classList.contains('active')) return;
                     if (e.key === 'ArrowRight') { showIndex((currentIndex + 1) % images.length); }

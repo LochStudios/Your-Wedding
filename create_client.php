@@ -3,13 +3,13 @@ require_once __DIR__ . '/config.php';
 require_admin_session();
 
 $conn = get_db_connection();
- $errors = [];
- $message = '';
- // Defaults for build and form
- $title1 = 'Mr';
- $title2 = 'Mrs';
- $familyName = '';
- $username = '';
+$errors = [];
+$message = '';
+// Defaults for build and form
+$title1 = 'Mr';
+$title2 = 'Mrs';
+$familyName = '';
+$username = '';
 
 // Handle create
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -77,6 +77,7 @@ $stmt->close();
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>Create Client | Your Wedding</title>
+        <link rel="icon" href="4803712.png" type="image/png" />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
         <link rel="stylesheet" href="style.css?v=<?php echo uuidv4(); ?>" />
