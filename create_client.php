@@ -83,7 +83,7 @@ $stmt->close();
     </head>
     <body>
         <?php include_once __DIR__ . '/nav.php'; ?>
-        <section class="section">
+        <section class="section full-bleed full-height">
             <div class="container is-fluid">
                 <h1 class="title">Create Client Account</h1>
                 <p class="subtitle">Create a client account to grant access to multiple galleries.</p>

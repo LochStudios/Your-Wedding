@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <link rel="stylesheet" href="style.css?v=<?php echo uuidv4(); ?>" />
     </head>
     <body>
-        <section class="section full-bleed">
+        <section class="section full-bleed full-height">
             <div class="container is-fluid">
                 <div class="columns is-centered">
                     <div class="column is-half">

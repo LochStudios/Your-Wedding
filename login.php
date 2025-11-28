@@ -88,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </head>
     <body>
         <?php include_once __DIR__ . '/nav.php'; ?>
-        <section class="section full-bleed">
+        <section class="section full-bleed full-height">
             <div class="container is-fluid">
                 <div class="columns is-centered">
                     <div class="column is-half">

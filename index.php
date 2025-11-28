@@ -13,7 +13,7 @@ require_once __DIR__ . '/config.php';
     </head>
     <body>
         <?php include_once __DIR__ . '/nav.php'; ?>
-        <section class="hero is-medium is-bold full-bleed">
+        <section class="hero is-medium is-bold full-bleed full-height">
             <div class="hero-body">
                 <div class="container is-fluid">
                     <p class="subtitle">LochStudios Presents</p>

@@ -4,6 +4,12 @@ body {
     color: #f9fafb;
 }
 
+/* Make sure the document fills the viewport height and the body background covers fully */
+html, body {
+    height: 100%;
+    min-height: 100vh;
+}
+
 .hero {
     background: linear-gradient(135deg, #0f172a, #1f2937 65%, #111827 100%);
 }
@@ -33,6 +39,21 @@ body {
     padding-left: 2rem;
     padding-right: 2rem;
     background: linear-gradient(135deg, rgba(10, 20, 30, 1), rgba(15, 25, 38, 1));
+}
+
+/* Utility for sections that should be as tall as the viewport */
+.section.full-height {
+    min-height: 100vh; /* full viewport height */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* center vertically when used */
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+
+/* Make sure content still scrolls on small screens */
+@media (max-height: 700px) {
+    .section.full-height { min-height: auto; }
 }
 
 .section .box,
