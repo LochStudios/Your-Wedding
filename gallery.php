@@ -250,11 +250,16 @@ if ($accessGranted) {
         $prefix = rtrim($album['s3_folder_path'], '/') . '/';
         try {
             $params = ['Bucket' => $bucket, 'Prefix' => ltrim($prefix, '/')];
+            $imageExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'tif', 'tiff', 'bmp', 'heic', 'heif', 'svg', 'avif'];
             do {
                 $result = $s3->listObjectsV2($params);
                 $signEnabled = get_s3_signing_enabled();
                 foreach ($result['Contents'] ?? [] as $object) {
                     if (str_ends_with($object['Key'], '/')) {
+                        continue;
+                    }
+                    $extension = strtolower(pathinfo($object['Key'], PATHINFO_EXTENSION));
+                    if ($extension === '' || !in_array($extension, $imageExtensions, true)) {
                         continue;
                     }
                     // If an S3 base URL is configured (e.g. CloudFront/CNAME), build direct
@@ -374,7 +379,7 @@ if ($accessGranted) {
                                 <a class="button is-light" href="logout.php">Sign out</a>
                             <?php endif; ?>
                                 <?php if (!empty($galleryImages) && count(array_filter($galleryImages)) > 0): ?>
-                                    <a id="downloadAllBtn" class="button is-link" href="download_all.php?slug=<?php echo urlencode($slug); ?>">Download All</a>
+                                    <a id="downloadAllBtn" class="button is-link" href="download_all.php?slug=<?php echo urlencode($slug); ?>" download="<?php echo htmlspecialchars(($slug ?: 'gallery') . '.zip'); ?>">Download All</a>
                                 <?php endif; ?>
                                 <a class="button is-light" href="/">Back to Landing</a>
                         </div>
