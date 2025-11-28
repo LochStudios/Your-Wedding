@@ -15,7 +15,7 @@ require_once __DIR__ . '/config.php';
         <section class="hero is-medium is-bold">
             <div class="hero-body">
                 <div class="container">
-                    <p class="subtitle">Loch Studios Presents</p>
+                    <p class="subtitle">LochStudios Presents</p>
                     <h1 class="title">Your Wedding</h1>
                     <p class="subtitle is-4">Showcase your wedding memories with a private gallery for every client.</p>
                     <div class="buttons mt-5">
@@ -54,7 +54,7 @@ require_once __DIR__ . '/config.php';
             <div class="container">
                 <h2 class="title">What we do</h2>
                 <div class="columns">
-                    <div class="column">
+                    <div class="column has-text-dark">
                         <div class="box">
                             <span class="icon has-text-primary"><i class="fas fa-shield-halved fa-2x"></i></span>
                             <h3 class="title is-5">Private Galleries</h3>
