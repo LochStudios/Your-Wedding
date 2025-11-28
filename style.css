@@ -34,6 +34,12 @@ section.section,
     background-color: rgba(255, 255, 255, 0.96);
 }
 
+.dashboard-card {
+    border-radius: 18px;
+    box-shadow: 0 30px 55px rgba(6, 19, 96, 0.15);
+    background-color: rgba(255, 255, 255, 0.97);
+}
+
 .hero {
     background: linear-gradient(135deg, #1f232a, #4a6cff);
 }
