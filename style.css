@@ -28,6 +28,12 @@ section.section,
     color: inherit;
 }
 
+.change-password-card {
+    border-radius: 16px;
+    box-shadow: 0 25px 45px rgba(13, 43, 116, 0.15);
+    background-color: rgba(255, 255, 255, 0.96);
+}
+
 .hero {
     background: linear-gradient(135deg, #1f232a, #4a6cff);
 }

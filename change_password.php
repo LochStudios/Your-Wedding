@@ -48,43 +48,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <body>
         <section class="section">
             <div class="container">
-                <h1 class="title">Change Admin Password</h1>
-                <p class="subtitle">Choose a strong password for the admin account.</p>
-                <?php if ($message): ?>
-                    <div class="notification is-success"><?php echo htmlspecialchars($message); ?></div>
-                <?php endif; ?>
-                <?php if (!empty($errors)): ?>
-                    <div class="notification is-danger">
-                        <ul>
-                            <?php foreach ($errors as $errorItem): ?>
-                                <li><?php echo htmlspecialchars($errorItem); ?></li>
-                            <?php endforeach; ?>
-                        </ul>
-                    </div>
-                <?php endif; ?>
-                <form method="post">
-                    <div class="field">
-                        <label class="label">New Password</label>
-                        <div class="control">
-                            <input class="input" type="password" name="password" placeholder="New password" required />
+                <div class="columns is-centered">
+                    <div class="column is-8">
+                        <div class="card change-password-card">
+                            <div class="card-content">
+                                <div class="content">
+                                    <h1 class="title">Change Admin Password</h1>
+                                    <p class="subtitle">Choose a strong password for the admin account.</p>
+                                </div>
+                                <?php if ($message): ?>
+                                    <div class="notification is-success"><?php echo htmlspecialchars($message); ?></div>
+                                <?php endif; ?>
+                                <?php if (!empty($errors)): ?>
+                                    <div class="notification is-danger">
+                                        <ul>
+                                            <?php foreach ($errors as $errorItem): ?>
+                                                <li><?php echo htmlspecialchars($errorItem); ?></li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                    </div>
+                                <?php endif; ?>
+                                <form method="post">
+                                    <div class="field">
+                                        <label class="label">New Password</label>
+                                        <div class="control">
+                                            <input class="input" type="password" name="password" placeholder="New password" required />
+                                        </div>
+                                        <p class="help">Minimum 8 characters.</p>
+                                    </div>
+                                    <div class="field">
+                                        <label class="label">Confirm Password</label>
+                                        <div class="control">
+                                            <input class="input" type="password" name="confirm_password" placeholder="Confirm password" required />
+                                        </div>
+                                    </div>
+                                    <div class="field is-grouped">
+                                        <div class="control">
+                                            <button class="button is-link" type="submit">Update Password</button>
+                                        </div>
+                                        <div class="control">
+                                            <a class="button is-light" href="dashboard.php">Back to Dashboard</a>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
-                        <p class="help">Minimum 8 characters.</p>
                     </div>
-                    <div class="field">
-                        <label class="label">Confirm Password</label>
-                        <div class="control">
-                            <input class="input" type="password" name="confirm_password" placeholder="Confirm password" required />
-                        </div>
-                    </div>
-                    <div class="field is-grouped">
-                        <div class="control">
-                            <button class="button is-link" type="submit">Update Password</button>
-                        </div>
-                        <div class="control">
-                            <a class="button is-light" href="dashboard.php">Back to Dashboard</a>
-                        </div>
-                    </div>
-                </form>
+                </div>
             </div>
         </section>
     </body>
