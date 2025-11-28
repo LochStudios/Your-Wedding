@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/config.php';
 if (empty($_SESSION['client_logged_in'])) {
-    header('Location: client_login.php');
+    header('Location: login.php?type=client');
     exit;
 }
 $clientId = (int) $_SESSION['client_logged_in'];

@@ -40,16 +40,16 @@ $isClient = !empty($_SESSION['client_logged_in']);
                 <div class="navbar-item">
                     <div class="buttons">
                         <a class="button is-light" href="change_client_password.php">Change Password</a>
-                        <a class="button is-danger" href="client_logout.php">Sign out</a>
+                        <a class="button is-danger" href="logout.php">Sign out</a>
                     </div>
                 </div>
             <?php else: ?>
                 <div class="navbar-item">
                     <div class="buttons">
                         <?php if (is_admin_portal_visible()): ?>
-                        <a class="button is-primary" href="login.php">Company Portal</a>
+                        <a class="button is-primary" href="login.php?type=admin">Company Portal</a>
                         <?php endif; ?>
-                        <a class="button is-light" href="client_login.php">Client Portal</a>
+                        <a class="button is-light" href="login.php?type=client">Client Portal</a>
                     </div>
                 </div>
             <?php endif; ?>

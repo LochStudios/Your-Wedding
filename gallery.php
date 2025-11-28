@@ -282,7 +282,7 @@ if ($accessGranted) {
                         <h1 class="title">Access Gallery</h1>
                                         <p class="subtitle">Enter the password for <span class="has-text-weight-bold"><?php echo htmlspecialchars($album['client_display_name'] ?: $album['client_names']); ?></span>.</p>
                                         <?php if (!empty($album['client_id'])): ?>
-                                            <p class="help">Or <a href="client_login.php?redirect=<?php echo urlencode('gallery.php?slug=' . $slug); ?>">Sign in as the assigned client</a> to view this and other galleries.</p>
+                                            <p class="help">Or <a href="login.php?type=client&redirect=<?php echo urlencode('gallery.php?slug=' . $slug); ?>">Sign in as the assigned client</a> to view this and other galleries.</p>
                                         <?php endif; ?>
                         <?php if ($passwordError): ?>
                             <div class="notification is-danger"><?php echo htmlspecialchars($passwordError); ?></div>
@@ -313,7 +313,7 @@ if ($accessGranted) {
                         </div>
                         <div class="column has-text-right">
                             <?php if (!empty($_SESSION['client_logged_in'])): ?>
-                                <a class="button is-light" href="client_logout.php">Sign out</a>
+                                <a class="button is-light" href="logout.php">Sign out</a>
                             <?php endif; ?>
                             <a class="button is-light" href="/">Back to Landing</a>
                         </div>

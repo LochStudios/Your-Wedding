@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/config.php';
 if (empty($_SESSION['client_logged_in'])) {
-    header('Location: client_login.php?redirect=client_dashboard.php');
+    header('Location: login.php?type=client&redirect=client_dashboard.php');
     exit;
 }
 $clientId = (int) $_SESSION['client_logged_in'];
@@ -58,7 +58,7 @@ $stmt->close();
                                                 </div>
                                     <div class="level-right">
                                         <a class="button is-light" href="change_client_password.php">Change Password</a>
-                                        <a class="button is-light" href="client_logout.php">Sign Out</a>
+                                        <a class="button is-light" href="logout.php">Sign Out</a>
                                     </div>
                                 </div>
                                 <div class="table-container">

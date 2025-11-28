@@ -26,7 +26,7 @@ require_once __DIR__ . '/config.php';
                                 <span>Admins Only</span>
                             </a>
                         <?php endif; ?>
-                        <a class="button is-light is-medium" href="/client_login.php">
+                        <a class="button is-light is-medium" href="/login.php?type=client">
                             <span class="icon"><i class="fas fa-user"></i></span>
                             <span>Client Login</span>
                         </a>

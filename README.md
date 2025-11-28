@@ -17,16 +17,16 @@ A lightweight, custom PHP gallery for wedding clients. Admins create albums that
 | `config.php` | Central DB/S3 helpers, schema bootstrapping, and session gate. Requires the secure config file from `/home/lochstud/your-wedding-config/config.php`. |
 | `index.php` | Marketing landing page with hero, services, pricing, and contact sections. |
 | `style.css` | Custom Bulma overrides and gallery/lightbox styling. |
-| `login.php` | Admin login using bcrypt + sessions. |
+| `login.php` | Unified login page for Admin and Client — add `?type=client` to present client login, or `?type=admin` for admin login. |
 | `create_client.php` | Create client accounts for multi-gallery access (admin-only). Includes title dropdowns and family name so display names read like "Mr & Mrs Smith". |
-| `client_login.php` | Client login page — allows clients to sign-in and access all their assigned galleries. |
+| `login.php?type=client` | Client login page — allows clients to sign-in and access all their assigned galleries. |
 | `forgot_password.php` | Request an admin password reset; generates a short-lived reset token. |
 | `reset_password.php` | Complete a password reset using a token. |
 | `dashboard.php` | Album list with edit/delete controls for authenticated admins and links to update album or password. |
 | `create_album.php` | Create or edit an album (slug auto-generation + password visibility). |
 | `gallery.php` | Client-facing gatekeeper that lists S3 images and displays them in a responsive grid with a modal viewer. |
 | `create_client.php` | Create client accounts for multi-gallery access (admin-only). |
-| `client_login.php` | Client login page — allows clients to sign-in and access all their assigned galleries. |
+| `login.php?type=client` | Client login page — allows clients to sign-in and access all their assigned galleries. |
 | `client_dashboard.php` | Client-facing dashboard listing all galleries assigned to the logged-in client. |
 | `change_client_password.php` | Allow a logged-in client to change their password. |
 
