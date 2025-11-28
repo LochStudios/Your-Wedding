@@ -21,6 +21,20 @@ body {
     background-color: rgba(15, 23, 42, 0.9);
     border: 1px solid rgba(255, 255, 255, 0.05);
 }
+
+.pricing-card {
+    background-color: rgba(30, 41, 59, 0.9);
+    border: 1px solid rgba(248, 250, 252, 0.08);
+    box-shadow: 0 25px 35px rgba(2, 6, 23, 0.4);
+    color: #f1f5f9;
+}
+
+.pricing-card .card-header-title,
+.pricing-card .title,
+.pricing-card ul li,
+.pricing-card p {
+    color: inherit;
+}
 .hero .title,
 .hero .subtitle {
     color: #fff;
