@@ -51,6 +51,9 @@ $config = [
         'region' => $YOUR_WEDDING_AWS_REGION ?: 'ap-southeast-2',
         'bucket' => $YOUR_WEDDING_AWS_BUCKET ?: '',
     ],
+    'features' => [
+        'admin_portal_visible' => filter_var($YOUR_WEDDING_ADMIN_PORTAL_VISIBLE ?? true, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? true,
+    ],
 ];
 
 require_once '/home/lochstud/vendors/aws-autoloader.php';
@@ -186,4 +189,10 @@ function require_admin_session(): void
 function uuidv4(): string
 {
     return bin2hex(random_bytes(4));
+}
+
+function is_admin_portal_visible(): bool
+{
+    global $config;
+    return !empty($config['features']['admin_portal_visible']);
 }

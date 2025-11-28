@@ -7,8 +7,8 @@ require_once __DIR__ . '/config.php';
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>Your Wedding | Gallery & Client Access</title>
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css" />
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-MkM9+dU5CPtz+VRrx7tIw6V0Tp9SHFExi+b0dYV16zJZyrUxjlX+8llc8frlJYe1jKhh598MBXEDqUS1bJXgBA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.css" integrity="sha512-MkM9+dU5CPtz+VRrx7tIw6V0Tp9SHFExi+b0dYV16zJZyrUxjlX+8llc8frlJYe1jKhh598MBXEDqUS1bJXgBA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
         <link rel="stylesheet" href="style.css?v=<?php echo uuidv4(); ?>" />
     </head>
     <body>
@@ -19,10 +19,12 @@ require_once __DIR__ . '/config.php';
                     <h1 class="title">Your Wedding</h1>
                     <p class="subtitle is-4">Celebrate the photos LochStudios captured for you with a private gallery for every couple.</p>
                     <div class="buttons mt-5">
-                        <a class="button is-primary is-medium" href="/login.php">
-                            <span class="icon"><i class="fas fa-user-lock"></i></span>
-                            <span>Admins Only</span>
-                        </a>
+                        <?php if (is_admin_portal_visible()): ?>
+                            <a class="button is-primary is-medium" href="/login.php">
+                                <span class="icon"><i class="fas fa-user-lock"></i></span>
+                                <span>Admins Only</span>
+                            </a>
+                        <?php endif; ?>
                         <a class="button is-light is-medium" href="#contact">
                             <span class="icon"><i class="fas fa-envelope"></i></span>
                             <span>Contact Us</span>
@@ -185,10 +187,12 @@ require_once __DIR__ . '/config.php';
         </section>
         <footer class="footer">
             <div class="content has-text-centered">
-                <p>&copy; <?php echo date('Y'); ?> Loch Studios · Your Wedding Gallery Experience</p>
-                <p class="footer-links">
-                    <a href="/login.php">Admin Portal</a>
-                </p>
+                <p>&copy; <?php echo date('Y'); ?> LochStudios· Your Wedding Gallery Experience</p>
+                <?php if (is_admin_portal_visible()): ?>
+                    <p class="footer-links">
+                        <a href="/login.php">Admin Portal</a>
+                    </p>
+                <?php endif; ?>
             </div>
         </footer>
     </body>
