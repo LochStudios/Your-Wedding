@@ -15,14 +15,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Both fields are required.';
     } else {
         $conn = get_db_connection();
-        $stmt = $conn->prepare('SELECT id, password_hash FROM admins WHERE username = ? LIMIT 1');
+        $stmt = $conn->prepare('SELECT id, password_hash, force_password_reset FROM admins WHERE username = ? LIMIT 1');
         $stmt->bind_param('s', $username);
         $stmt->execute();
-        $stmt->bind_result($adminId, $passwordHash);
+        $stmt->bind_result($adminId, $passwordHash, $forcePasswordReset);
         if ($stmt->fetch() && password_verify($password, $passwordHash)) {
             $_SESSION['admin_logged_in'] = true;
             $_SESSION['admin_user_id'] = $adminId;
-            header('Location: dashboard.php');
+            $_SESSION['requires_password_reset'] = (bool) $forcePasswordReset;
+            if ($forcePasswordReset) {
+                header('Location: change_password.php');
+            } else {
+                header('Location: dashboard.php');
+            }
             exit;
         }
         $stmt->close();
