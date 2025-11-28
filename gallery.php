@@ -335,10 +335,10 @@ if ($accessGranted) {
                 <div class="container">
                     <div class="box access-card">
                         <h1 class="title">Access Gallery</h1>
-                                        <p class="subtitle">Enter the password for <span class="has-text-weight-bold"><?php echo htmlspecialchars($album['client_display_name'] ?: $album['client_names']); ?></span>.</p>
-                                        <?php if (!empty($album['client_id'])): ?>
-                                            <p class="help">Or <a href="login.php?type=client&redirect=<?php echo urlencode('gallery.php?slug=' . $slug); ?>">Sign in as the assigned client</a> to view this and other galleries.</p>
-                                        <?php endif; ?>
+                        <p class="subtitle">Enter the password for <span class="has-text-weight-bold"><?php echo htmlspecialchars($album['client_display_name'] ?: $album['client_names']); ?></span>.</p>
+                        <?php if (!empty($album['client_id'])): ?>
+                            <p class="help">Or <a href="login.php?type=client&redirect=<?php echo urlencode('gallery.php?slug=' . $slug); ?>">Sign in as the assigned client</a> to view this and other galleries.</p>
+                        <?php endif; ?>
                         <?php if ($passwordError): ?>
                             <div class="notification is-danger"><?php echo htmlspecialchars($passwordError); ?></div>
                         <?php endif; ?>
@@ -378,18 +378,6 @@ if ($accessGranted) {
                     <?php elseif (empty($galleryImages)): ?>
                         <div class="notification is-info">No images found in this folder yet.</div>
                     <?php else: ?>
-                        <?php if (!empty($_SESSION['admin_logged_in'])): ?>
-                            <div class="notification is-light">
-                                <strong>Admin S3 Diagnostics</strong>
-                                <pre style="white-space:pre-wrap;word-wrap:break-word;">
-Endpoint: <?php echo htmlspecialchars(get_s3_effective_endpoint() ?? ''); ?>
-Base URL: <?php echo htmlspecialchars(get_s3_effective_base_url() ?? ''); ?>
-Sign URLs enabled: <?php echo get_s3_signing_enabled() ? 'yes' : 'no'; ?>
-Sample URLs:
-<?php foreach (array_slice($galleryImages, 0, 10) as $u) { echo htmlspecialchars($u) . "\n"; } ?>
-                                </pre>
-                            </div>
-                        <?php endif; ?>
                         <div class="columns is-multiline gallery-grid">
                             <?php foreach ($galleryImages as $imageUrl): ?>
                                 <div class="column is-one-third">
