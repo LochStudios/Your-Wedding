@@ -1,6 +1,19 @@
 <?php
 declare(strict_types=1);
 
+/* Ensure the configured session save directory exists so PHP can write session files. */
+$sessionSavePath = ini_get('session.save_path');
+if ($sessionSavePath) {
+    $segments = explode(';', $sessionSavePath);
+    $sessionDir = trim(end($segments));
+    if ($sessionDir !== '') {
+        if (!is_dir($sessionDir)) {
+            @mkdir($sessionDir, 0700, true);
+        }
+        session_save_path($sessionDir);
+    }
+}
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -36,15 +49,21 @@ function get_db_connection(): mysqli
     }
     global $config;
     $dbConfig = $config['db'];
-    $connection = new mysqli(
-        $dbConfig['host'],
-        $dbConfig['username'],
-        $dbConfig['password'],
-        $dbConfig['database'],
-        $dbConfig['port']
-    );
-    if ($connection->connect_errno) {
-        die('Database connection failed: ' . $connection->connect_error);
+    try {
+        $connection = new mysqli(
+            $dbConfig['host'],
+            $dbConfig['username'],
+            $dbConfig['password'],
+            $dbConfig['database'],
+            $dbConfig['port']
+        );
+    } catch (mysqli_sql_exception $exception) {
+        error_log('Database connection failed: ' . $exception->getMessage());
+        http_response_code(500);
+        echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Database Error</title>';
+        echo '<style>body{font-family:"Segoe UI",sans-serif;background:#f4f6fb;color:#1a1a1a;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;padding:1rem;}div{max-width:460px;padding:2rem;background:#fff;border-radius:12px;box-shadow:0 20px 40px rgba(4,12,32,0.12);}</style>';
+        echo '<body><div><h1>Database Unreachable</h1><p>Please verify the database credentials in the configuration. Contact LochStudios if the problem persists.</p></div></body></html>';
+        exit;
     }
     $connection->set_charset('utf8mb4');
     initialize_schema($connection);
