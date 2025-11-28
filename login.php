@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->close();
             $error = 'Invalid admin username or password';
         } else {
-            // client login
+            // Client Portal
             // support numeric client ID or username
             if (is_numeric($username)) {
                 $stmt = $conn->prepare('SELECT id, password_hash FROM clients WHERE id = ? LIMIT 1');
@@ -98,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <li class="<?php echo $role === 'client' ? 'is-active' : ''; ?>"><a href="login.php?type=client<?php echo $redirect ? '&redirect=' . urlencode($redirect) : ''; ?>">Client</a></li>
                             </ul>
                         </div>
-                        <h1 class="title"><?php echo $role === 'admin' ? 'Admin Portal' : 'Client Login'; ?></h1>
+                        <h1 class="title"><?php echo $role === 'admin' ? 'Company Portal' : 'Client Portal'; ?></h1>
                         <p><?php echo $role === 'admin' ? 'Please enter your credentials.' : 'Please sign in to access your assigned galleries.'; ?></p>
                         <div class="box">
                             <?php if ($notice): ?>
