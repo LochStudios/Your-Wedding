@@ -446,21 +446,7 @@ if ($accessGranted) {
                     if (!images[currentIndex]) { e.preventDefault(); return; }
                     // Let the link act as download; for cross origin signed URLs this should download.
                 });
-                // Download All
-                if (downloadAllBtn) {
-                    downloadAllBtn.addEventListener('click', () => {
-                        // Attempt to download each image sequentially via anchors
-                        images.forEach((url, i) => {
-                            if (!url) return;
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = '';
-                            a.target = '_blank';
-                            document.body.appendChild(a);
-                            setTimeout(() => { a.click(); a.remove(); }, 250 * i);
-                        });
-                    });
-                }
+                // Download All handled by server-side zip via anchor `download_all.php`
                 overlay.addEventListener('click', (e) => {
                     if (e.target === overlay || e.target === overlayImage) {
                         overlay.classList.remove('active');
