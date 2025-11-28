@@ -2,6 +2,11 @@
 require_once __DIR__ . '/config.php';
 require_admin_session();
 
+$flashMessage = $_SESSION['admin_flash'] ?? null;
+if (isset($_SESSION['admin_flash'])) {
+    unset($_SESSION['admin_flash']);
+}
+
 $conn = get_db_connection();
 
 if (!empty($_GET['delete_id'])) {
@@ -54,6 +59,11 @@ $stmt->close();
                         <a class="button is-light" href="change_password.php"><i class="fas fa-key"></i>&nbsp;<span>Change password</span></a>
                     </div>
                 </div>
+                <?php if ($flashMessage): ?>
+                    <div class="notification is-success">
+                        <?php echo htmlspecialchars($flashMessage); ?>
+                    </div>
+                <?php endif; ?>
                 <?php if (!empty($_SESSION['requires_password_reset'])): ?>
                     <div class="notification is-warning">
                         A password reset is required for this account. <a href="change_password.php">Update it now</a> before continuing.
