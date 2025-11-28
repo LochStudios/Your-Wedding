@@ -250,6 +250,7 @@ if ($accessGranted) {
             $params = ['Bucket' => $bucket, 'Prefix' => ltrim($prefix, '/')];
             do {
                 $result = $s3->listObjectsV2($params);
+                $signEnabled = get_s3_signing_enabled();
                 foreach ($result['Contents'] ?? [] as $object) {
                     if (str_ends_with($object['Key'], '/')) {
                         continue;
@@ -257,6 +258,18 @@ if ($accessGranted) {
                     // If an S3 base URL is configured (e.g. CloudFront/CNAME), build direct
                     // URLs to objects on that domain. Otherwise, fall back to presigned URLs.
                     $s3BaseUrl = get_s3_base_url();
+                    $shouldSign = $signEnabled && $s3 !== null;
+                    if ($shouldSign) {
+                        try {
+                            $cmd = $s3->getCommand('GetObject', ['Bucket' => get_aws_bucket(), 'Key' => $object['Key']]);
+                            $request = $s3->createPresignedRequest($cmd, '+15 minutes');
+                            $galleryImages[] = (string) $request->getUri();
+                            continue;
+                        } catch (\Aws\Exception\AwsException $ex) {
+                            error_log('Failed to create presigned URL: ' . $ex->getMessage());
+                            // fallthrough to other fallbacks
+                        }
+                    }
                     if (!empty($s3BaseUrl)) {
                         $bucket = get_aws_bucket();
                         $baseContainsBucket = stripos($s3BaseUrl, '/' . $bucket) !== false || stripos($s3BaseUrl, $bucket . '/') !== false || stripos($s3BaseUrl, $bucket) !== false;
@@ -266,9 +279,19 @@ if ($accessGranted) {
                             $galleryImages[] = $s3BaseUrl . '/' . $bucket . '/' . ltrim($object['Key'], '/');
                         }
                     } else {
-                        $cmd = $s3->getCommand('GetObject', ['Bucket' => $bucket, 'Key' => $object['Key']]);
-                        $request = $s3->createPresignedRequest($cmd, '+15 minutes');
-                        $galleryImages[] = (string) $request->getUri();
+                        // If we couldn't sign, but have a valid S3 client, try create presigned URL again (best effort)
+                        if ($s3 !== null) {
+                            try {
+                                $cmd = $s3->getCommand('GetObject', ['Bucket' => $bucket, 'Key' => $object['Key']]);
+                                $request = $s3->createPresignedRequest($cmd, '+15 minutes');
+                                $galleryImages[] = (string) $request->getUri();
+                                continue;
+                            } catch (\Aws\Exception\AwsException $ex) {
+                                error_log('Fallback presigned URL failed: ' . $ex->getMessage());
+                            }
+                        }
+                        // No signing available and no base URL to use — add null placeholder, not local path
+                        $galleryImages[] = null;
                     }
                 }
                 $params['ContinuationToken'] = $result['NextContinuationToken'] ?? null;
@@ -355,13 +378,29 @@ if ($accessGranted) {
                     <?php elseif (empty($galleryImages)): ?>
                         <div class="notification is-info">No images found in this folder yet.</div>
                     <?php else: ?>
+                        <?php if (!empty($_SESSION['admin_logged_in'])): ?>
+                            <div class="notification is-light">
+                                <strong>Admin S3 Diagnostics</strong>
+                                <pre style="white-space:pre-wrap;word-wrap:break-word;">
+Endpoint: <?php echo htmlspecialchars(get_s3_effective_endpoint() ?? ''); ?>
+Base URL: <?php echo htmlspecialchars(get_s3_effective_base_url() ?? ''); ?>
+Sign URLs enabled: <?php echo get_s3_signing_enabled() ? 'yes' : 'no'; ?>
+Sample URLs:
+<?php foreach (array_slice($galleryImages, 0, 10) as $u) { echo htmlspecialchars($u) . "\n"; } ?>
+                                </pre>
+                            </div>
+                        <?php endif; ?>
                         <div class="columns is-multiline gallery-grid">
                             <?php foreach ($galleryImages as $imageUrl): ?>
                                 <div class="column is-one-third">
                                     <div class="card">
                                         <div class="card-image">
                                             <figure class="image is-4by3">
-                                                <img src="<?php echo htmlspecialchars($imageUrl); ?>" data-full="<?php echo htmlspecialchars($imageUrl); ?>" alt="Gallery photo" />
+                                                <?php if (!empty($imageUrl)): ?>
+                                                    <img src="<?php echo htmlspecialchars($imageUrl); ?>" data-full="<?php echo htmlspecialchars($imageUrl); ?>" alt="Gallery photo" />
+                                                <?php else: ?>
+                                                    <div class="has-text-centered has-text-grey">[Private image — no accessible URL]</div>
+                                                <?php endif; ?>
                                             </figure>
                                         </div>
                                     </div>
