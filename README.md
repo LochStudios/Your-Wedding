@@ -18,7 +18,7 @@ A lightweight, custom PHP gallery for wedding clients. Admins create albums that
 | `index.php` | Marketing landing page with hero, services, pricing, and contact sections. |
 | `style.css` | Custom Bulma overrides and gallery/lightbox styling. |
 | `login.php` | Admin login using bcrypt + sessions. |
-| `dashboard.php` | Album list with edit/delete controls for authenticated admins. |
+| `dashboard.php` | Album list with edit/delete controls for authenticated admins and links to update album or password. |
 | `create_album.php` | Create or edit an album (slug auto-generation + password visibility). |
 | `gallery.php` | Client-facing gatekeeper that lists S3 images and displays them in a responsive grid with a modal viewer. |
 
@@ -27,7 +27,7 @@ A lightweight, custom PHP gallery for wedding clients. Admins create albums that
 1. Place your credentials in `/home/lochstud/your-wedding-config/config.php` as shown in the provided template.
 2. Ensure the AWS SDK autoloader is reachable at `/home/lochstud/vendors/aws-autoloader.php`.
 3. Point your webroot to this project so `index.php`, `login.php`, etc., are publicly accessible.
-4. Visit `/login.php`, use `admin`/`admin1234` (or update the seeded admin via SQL), then create albums referencing your S3 folders.
+4. Visit `/login.php`, use `admin`/`admin1234` (or update the seeded admin via SQL), then you'll be required to update the admin password before using the dashboard; a change-password link is also available.
 5. Share `/gallery.php?slug=<slug>` and the album password with your clients.
 
 ## Notes
