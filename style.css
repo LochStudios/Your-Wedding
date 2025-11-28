@@ -1,7 +1,15 @@
 body {
     font-family: 'Helvetica Neue', 'Segoe UI', sans-serif;
-    background-color: #f8f9fb;
+    background: linear-gradient(180deg, #f5f6fb 0%, #eef2ff 35%, #d7e1ff 100%);
     color: #1e1e1e;
+}
+
+section.section,
+.hero,
+.footer,
+.box,
+.card {
+    background-color: rgba(255, 255, 255, 0.95);
 }
 .hero .title,
 .hero .subtitle {
