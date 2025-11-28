@@ -11,7 +11,7 @@ function ensure_session_directory(): void
         $sessionDir = trim(end($segments));
     }
     if ($sessionDir === '' || !create_session_directory($sessionDir)) {
-        $sessionDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'lochstudios_sessions';
+        $sessionDir = '/home/lochstud/php_sessions';
         create_session_directory($sessionDir);
     }
     if ($sessionDir !== '') {
