@@ -215,6 +215,13 @@ function get_s3_client(): ?S3Client
                 $endpoint = $maybe;
             }
         }
+        // If the supplied endpoint is a generic provider root such as `linodeobjects.com`
+        // and both bucket and region are set, derive a bucket-specific host like
+        // `yourwedding.au-mel-1.linodeobjects.com` and use that as the endpoint.
+        $derived = get_derived_s3_endpoint();
+        if ($derived !== null) {
+            $endpoint = $derived;
+        }
         if ($endpoint !== '') {
             if (!preg_match('#^https?://#', $endpoint)) {
                 $endpoint = 'https://' . $endpoint;
@@ -246,6 +253,43 @@ function get_aws_bucket(): string
 }
 
 /**
+ * Try to derive a compatible S3 endpoint when the configured host is a generic
+ * provider root (for example `linodeobjects.com`) and we have the bucket/region
+ * details in configuration.
+ */
+function get_derived_s3_endpoint(): ?string
+{
+    global $config;
+    $aws = $config['aws'];
+    $maybe = trim((string)($aws['s3_endpoint'] ?? '')) ?: trim((string)($aws['s3_url'] ?? ''));
+    if ($maybe === '') {
+        return null;
+    }
+    if (!preg_match('#^https?://#', $maybe)) {
+        $maybe = 'https://' . $maybe;
+    }
+    $host = parse_url($maybe, PHP_URL_HOST) ?: $maybe;
+    if ($host === '') {
+        return null;
+    }
+    // Only attempt smart derivation for Linode-style domains
+    if (stripos($host, 'linodeobjects.com') !== false) {
+        // If the host is exactly the root (linodeobjects.com) or doesn't contain
+        // the bucket prefix (no more than two components before 'linodeobjects'),
+        // and we have bucket + region, build bucket.region.linodeobjects.com.
+        $segments = explode('.', $host);
+        $bucket = trim((string)($aws['bucket'] ?? ''));
+        $region = trim((string)($aws['region'] ?? ''));
+        // If the host is exactly 'linodeobjects.com' or lacks the bucket+region
+        // part, and we have both bucket and region, construct the host.
+        if (($host === 'linodeobjects.com' || count($segments) < 3) && $bucket !== '' && $region !== '') {
+            return 'https://' . $bucket . '.' . $region . '.linodeobjects.com';
+        }
+    }
+    return null;
+}
+
+/**
  * Return a custom S3 base URL (cloudfront/CNAME or S3 endpoint) if configured.
  * If empty, null is returned and calling code should fallback to presigned URLs or
  * SDK-generated defaults.
@@ -260,6 +304,15 @@ function get_s3_base_url(): ?string
     // Ensure scheme is present so URL joins work correctly
     if (!preg_match('#^https?://#', $url)) {
         $url = 'https://' . $url;
+    }
+    // If the user provided only a generic provider domain for Linode, replace
+    // the base URL with the derived endpoint (bucket.region.linodeobjects.com)
+    // when possible, so direct object URLs work without the user changing config.
+    if (stripos($url, 'linodeobjects.com') !== false) {
+        $derived = get_derived_s3_endpoint();
+        if ($derived !== null) {
+            $url = $derived;
+        }
     }
     return $url === '' ? null : rtrim($url, '/');
 }
@@ -307,6 +360,19 @@ function get_s3_diagnosis(): ?string
     // unchanged if the host can't be resolved.
     $resolved = @gethostbyname($host);
     if ($resolved === $host || $resolved === false) {
+        // If this host is Linode root, see if we can derive the bucket-specific
+        // host from the configuration (bucket + region) and the derived host
+        // resolves — in that case we won't show a diagnostic because the code
+        // will auto-use the derived host.
+        $derived = get_derived_s3_endpoint();
+        if ($derived !== null) {
+            $derivedHost = parse_url($derived, PHP_URL_HOST) ?: $derived;
+            $derivedResolved = @gethostbyname($derivedHost);
+            if ($derivedResolved !== $derivedHost && $derivedResolved !== false) {
+                // Derived host resolves; don't treat this as an error.
+                return null;
+            }
+        }
         if (stripos($host, 'linodeobjects.com') !== false && strtolower($host) === 'linodeobjects.com') {
             $bucket = trim($aws['bucket'] ?? '');
             $suggest = $bucket !== '' ? htmlspecialchars($bucket) . '.<region>.linodeobjects.com' : '<bucket>.<region>.linodeobjects.com';

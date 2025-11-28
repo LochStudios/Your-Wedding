@@ -45,6 +45,7 @@ If you'd like to use a CDN or a custom domain (e.g., CloudFront) instead of pres
 If you use an S3-compatible provider such as Linode Object Storage, prefer the region-specific endpoint (e.g., `https://us-east-1.linodeobjects.com`) rather than the root domain (`linodeobjects.com`) which will not resolve. Example:
 
 When set, the application will construct object URLs using that base URL instead of generating presigned links.
+If `YOUR_WEDDING_AWS_S3_URL` is set to a provider root (e.g. `linodeobjects.com`) and `YOUR_WEDDING_AWS_BUCKET` and `YOUR_WEDDING_AWS_REGION` are set, the app attempts to auto-derive the endpoint as `https://<bucket>.<region>.linodeobjects.com`. For best results, set `YOUR_WEDDING_AWS_S3_ENDPOINT` explicitly.
 
 ## Notes
 
