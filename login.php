@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </div>
                             </form>
                         </div>
-                        <p class="has-text-grey">Need help? Contact hello@lochstudios.com</p>
+                        <p class="has-text-grey">Need help? Contact media@lochstudios.com</p>
                     </div>
                 </div>
             </div>
