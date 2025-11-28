@@ -17,7 +17,7 @@ require_once __DIR__ . '/config.php';
                 <div class="container">
                     <p class="subtitle">LochStudios Presents</p>
                     <h1 class="title">Your Wedding</h1>
-                    <p class="subtitle is-4">Showcase your wedding memories with a private gallery for every client.</p>
+                    <p class="subtitle is-4">Celebrate the photos LochStudios captured for you with a private gallery for every couple.</p>
                     <div class="buttons mt-5">
                         <a class="button is-primary is-medium" href="/login.php">
                             <span class="icon"><i class="fas fa-user-lock"></i></span>
@@ -37,9 +37,8 @@ require_once __DIR__ . '/config.php';
                     <div class="column">
                         <h2 class="title">Who we are</h2>
                         <p>
-                            Your Wedding is a private gallery experience built specifically for wedding clients. We help
-                            photography teams deliver a polished, magazine-quality presentation of every celebration so
-                            couples can relive their day securely.
+                            We're LochStudios. Your Wedding is the private gallery site we build for our couples so they can
+                            revisit the moments we captured on their wedding day in a secure, beautifully presented space.
                         </p>
                     </div>
                     <div class="column">
@@ -58,21 +57,21 @@ require_once __DIR__ . '/config.php';
                         <div class="box">
                             <span class="icon has-text-primary"><i class="fas fa-shield-halved fa-2x"></i></span>
                             <h3 class="title is-5">Private Galleries</h3>
-                            <p>Create password-protected experiences for every client with custom slugs.</p>
+                            <p>Every gallery is handcrafted by LochStudios with password protection and thoughtful slugs.</p>
                         </div>
                     </div>
                     <div class="column">
                         <div class="box">
                             <span class="icon has-text-primary"><i class="fas fa-cloud-download-alt fa-2x"></i></span>
-                            <h3 class="title is-5">AWS S3 Storage</h3>
-                            <p>Images stay on your S3 buckets. We simply display the folders in a responsive viewer.</p>
+                            <h3 class="title is-5">Secure Hosting</h3>
+                            <p>We keep the originals safe and deliver them to you through this responsive viewer.</p>
                         </div>
                     </div>
                     <div class="column">
                         <div class="box">
                             <span class="icon has-text-primary"><i class="fas fa-tachometer-alt fa-2x"></i></span>
                             <h3 class="title is-5">Fast Delivery</h3>
-                            <p>Streamlined admin workflows let you create albums, manage access, and publish galleries.</p>
+                            <p>We publish galleries shortly after editing so couples receive their photos while the memory is fresh.</p>
                         </div>
                     </div>
                 </div>
@@ -88,12 +87,12 @@ require_once __DIR__ . '/config.php';
                                 <p class="card-header-title has-text-weight-bold">Starter</p>
                             </header>
                             <div class="card-content">
-                                <p class="title is-3">$199</p>
-                                <p>1 client gallery, unlimited photos.</p>
+                                <p class="title is-3">$2,499</p>
+                                <p>Full-day coverage gallery with a curated delivery experience.</p>
                                 <ul>
-                                    <li>Secure password delivery</li>
-                                    <li>Basic lightbox view</li>
-                                    <li>Email support</li>
+                                    <li>LochStudios curated password delivery</li>
+                                    <li>Gallery-friendly lightbox</li>
+                                    <li>Responsive tech support</li>
                                 </ul>
                             </div>
                         </div>
@@ -104,12 +103,12 @@ require_once __DIR__ . '/config.php';
                                 <p class="card-header-title has-text-weight-bold">Premium</p>
                             </header>
                             <div class="card-content">
-                                <p class="title is-3">$349</p>
-                                <p>Unlimited client galleries + advanced sharing.</p>
+                                <p class="title is-3">$3,499</p>
+                                <p>Multi-gallery package with expedited delivery and extra polish.</p>
                                 <ul>
-                                    <li>Custom slugs & passwords</li>
-                                    <li>Priority support</li>
-                                    <li>Monthly reporting</li>
+                                    <li>Tailored slugs, passwords & messaging</li>
+                                    <li>Priority LochStudios support</li>
+                                    <li>Monthly sharing summaries</li>
                                 </ul>
                             </div>
                         </div>
@@ -121,11 +120,11 @@ require_once __DIR__ . '/config.php';
                             </header>
                             <div class="card-content">
                                 <p class="title is-3">Custom</p>
-                                <p>Tailored plans for studios, teams, and agencies.</p>
+                                <p>Custom partnerships for venues, teams, or large wedding programs.</p>
                                 <ul>
-                                    <li>Dedicated account manager</li>
-                                    <li>Custom S3 automations</li>
-                                    <li>Team-level permissions</li>
+                                    <li>Dedicated LochStudios gallery manager</li>
+                                    <li>Automated gallery workflows</li>
+                                    <li>Team-level sharing controls</li>
                                 </ul>
                             </div>
                         </div>
@@ -138,7 +137,7 @@ require_once __DIR__ . '/config.php';
                 <h2 class="title">Let's talk</h2>
                 <div class="columns">
                     <div class="column">
-                        <p class="subtitle">Reach out to set up your private gallery experience.</p>
+                        <p class="subtitle">Reach out to LochStudios to set up your private gallery experience.</p>
                         <p><strong>Phone</strong></p>
                         <p><i class="fas fa-phone"></i> Australia: +61 (2) 5632-3092</p>
                         <p><i class="fas fa-phone"></i> New Zealand: +64 (9) 873-1233</p>
