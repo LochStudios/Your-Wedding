@@ -47,8 +47,8 @@ if ($slug === '') {
         </head>
         <body>
             <?php include_once __DIR__ . '/nav.php'; ?>
-            <section class="section">
-                <div class="container">
+            <section class="section full-bleed">
+                <div class="container is-fluid">
                     <div class="columns is-centered">
                         <div class="column is-6">
                             <div class="box" style="text-align:center;">

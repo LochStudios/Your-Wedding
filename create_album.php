@@ -119,7 +119,7 @@ function slugify(string $text): string
     <body>
         <?php include_once __DIR__ . '/nav.php'; ?>
         <section class="section">
-            <div class="container">
+            <div class="container is-fluid">
                 <h1 class="title"><?php echo $editing ? 'Edit Album' : 'Create Album'; ?></h1>
                 <p class="subtitle">Point the album to an existing S3 folder and share the slug with clients.</p>
                 <?php if ($message): ?>

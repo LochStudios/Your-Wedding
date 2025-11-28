@@ -13,6 +13,28 @@ body {
     color: #f4f6fb;
 }
 
+/* Provide a wider content container that fills more horizontal space on larger screens
+   Use by adding class `is-fluid` to `.container` (Bulma-compatible) or `fullwidth` for application-only usage */
+.container.is-fluid, .container.fullwidth {
+    max-width: 1320px; /* wider than default Bulma container */
+    width: 100%;
+    padding-left: 2rem;
+    padding-right: 2rem;
+}
+
+@media (min-width: 1280px) {
+    .container.is-fluid, .container.fullwidth {
+        max-width: 1600px;
+    }
+}
+
+/* Full-bleed sections: allow background color/gradient to extend across viewport, use class "full-bleed" on section */
+.section.full-bleed {
+    padding-left: 2rem;
+    padding-right: 2rem;
+    background: linear-gradient(135deg, rgba(10, 20, 30, 1), rgba(15, 25, 38, 1));
+}
+
 .section .box,
 .section .card,
 .footer,

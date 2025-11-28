@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </head>
     <body>
         <section class="section">
-            <div class="container">
+            <div class="container is-fluid">
                 <div class="columns is-centered">
                     <div class="column is-half">
                         <h1 class="title">Forgot Password</h1>

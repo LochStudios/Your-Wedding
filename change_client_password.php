@@ -48,8 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <link rel="stylesheet" href="style.css?v=<?php echo uuidv4(); ?>" />
     </head>
     <body>
-        <section class="section">
-            <div class="container">
+        <section class="section full-bleed">
+            <div class="container is-fluid">
                 <div class="columns is-centered">
                     <div class="column is-half">
                         <h1 class="title">Change password</h1>

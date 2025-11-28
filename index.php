@@ -13,9 +13,9 @@ require_once __DIR__ . '/config.php';
     </head>
     <body>
         <?php include_once __DIR__ . '/nav.php'; ?>
-        <section class="hero is-medium is-bold">
+        <section class="hero is-medium is-bold full-bleed">
             <div class="hero-body">
-                <div class="container">
+                <div class="container is-fluid">
                     <p class="subtitle">LochStudios Presents</p>
                     <h1 class="title">Your Wedding</h1>
                     <p class="subtitle is-4">Celebrate the photos LochStudios captured for you with a private gallery for every couple.</p>
@@ -39,7 +39,7 @@ require_once __DIR__ . '/config.php';
             </div>
         </section>
         <section class="section">
-            <div class="container">
+            <div class="container is-fluid">
                 <div class="columns is-vcentered">
                     <div class="column">
                         <h2 class="title">Who we are</h2>
@@ -57,7 +57,7 @@ require_once __DIR__ . '/config.php';
             </div>
         </section>
         <section class="section">
-            <div class="container">
+            <div class="container is-fluid">
                 <h2 class="title">What we do</h2>
                 <div class="columns">
                     <div class="column has-text-dark">
@@ -85,7 +85,7 @@ require_once __DIR__ . '/config.php';
             </div>
         </section>
         <section class="section">
-            <div class="container">
+            <div class="container is-fluid">
                 <h2 class="title">Pricing</h2>
                 <div class="columns">
                     <div class="column">
@@ -140,7 +140,7 @@ require_once __DIR__ . '/config.php';
             </div>
         </section>
         <section id="contact" class="section">
-            <div class="container">
+            <div class="container is-fluid">
                 <h2 class="title">Let's talk</h2>
                 <div class="columns">
                     <div class="column">
