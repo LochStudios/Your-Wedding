@@ -92,6 +92,7 @@ if ($accessGranted) {
         <link rel="stylesheet" href="style.css?v=<?php echo uuidv4(); ?>" />
     </head>
     <body>
+        <?php include_once __DIR__ . '/nav.php'; ?>
         <?php if (!$accessGranted): ?>
             <section class="section">
                 <div class="container">

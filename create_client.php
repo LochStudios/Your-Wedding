@@ -82,6 +82,7 @@ $stmt->close();
         <link rel="stylesheet" href="style.css?v=<?php echo uuidv4(); ?>" />
     </head>
     <body>
+        <?php include_once __DIR__ . '/nav.php'; ?>
         <section class="section">
             <div class="container">
                 <h1 class="title">Create Client Account</h1>

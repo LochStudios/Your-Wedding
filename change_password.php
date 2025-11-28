@@ -46,6 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <link rel="stylesheet" href="style.css?v=<?php echo uuidv4(); ?>" />
     </head>
     <body>
+        <?php include_once __DIR__ . '/nav.php'; ?>
         <section class="section">
             <div class="container">
                 <div class="columns is-centered">
