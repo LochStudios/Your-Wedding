@@ -86,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </div>
                             </form>
                         </div>
-                        <p><a href="client_dashboard.php">Back to your galleries</a></p>
+                        <p><a href="dashboard.php">Back to your galleries</a></p>
                     </div>
                 </div>
             </div>

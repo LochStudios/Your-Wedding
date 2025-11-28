@@ -20,7 +20,7 @@ $redirect = $_GET['redirect'] ?? null;
 
 // If a client is already signed in and role is client, go to dashboard
 if (!empty($_SESSION['client_logged_in']) && $role === 'client') {
-    header('Location: client_dashboard.php');
+    header('Location: dashboard.php');
     exit;
 }
 $redirect = $_GET['redirect'] ?? null;
@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_result($clientId, $passwordHash);
             if ($stmt->fetch() && password_verify($password, $passwordHash)) {
                 $_SESSION['client_logged_in'] = (int) $clientId;
-                $redirectTarget = $_POST['redirect'] ?? $redirect ?? 'client_dashboard.php';
+                $redirectTarget = $_POST['redirect'] ?? $redirect ?? 'dashboard.php';
                 header('Location: ' . $redirectTarget);
                 exit;
             }

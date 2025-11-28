@@ -24,7 +24,7 @@ $isClient = !empty($_SESSION['client_logged_in']);
                 <a class="navbar-item" href="create_client.php">Create Client</a>
             <?php endif; ?>
             <?php if ($isClient): ?>
-                <a class="navbar-item" href="client_dashboard.php">My Galleries</a>
+                <a class="navbar-item" href="dashboard.php">My Galleries</a>
             <?php endif; ?>
             <a class="navbar-item" href="gallery.php">Find Gallery</a>
         </div>

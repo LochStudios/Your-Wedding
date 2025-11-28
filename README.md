@@ -27,7 +27,7 @@ A lightweight, custom PHP gallery for wedding clients. Admins create albums that
 | `gallery.php` | Client-facing gatekeeper that lists S3 images and displays them in a responsive grid with a modal viewer. |
 | `create_client.php` | Create client accounts for multi-gallery access (admin-only). |
 | `login.php?type=client` | Client login page — allows clients to sign-in and access all their assigned galleries. |
-| `client_dashboard.php` | Client-facing dashboard listing all galleries assigned to the logged-in client. |
+| `dashboard.php` | Unified dashboard; admin users get album management and client users see their galleries. |
 | `change_client_password.php` | Allow a logged-in client to change their password. |
 
 ## Setup

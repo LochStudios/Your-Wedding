@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . '/config.php';
-require_admin_session();
 
 $flashMessage = $_SESSION['admin_flash'] ?? null;
 if (isset($_SESSION['admin_flash'])) {
@@ -9,7 +8,18 @@ if (isset($_SESSION['admin_flash'])) {
 
 $conn = get_db_connection();
 
-if (!empty($_GET['delete_id'])) {
+// Determine current role and whether the admin is acting as a client
+$isAdmin = !empty($_SESSION['admin_logged_in']);
+$isClient = !empty($_SESSION['client_logged_in']);
+$actingClientId = null;
+if ($isAdmin && !empty($_GET['as_client'])) {
+    $actingClientId = (int) $_GET['as_client'];
+} elseif ($isClient) {
+    $actingClientId = (int) $_SESSION['client_logged_in'];
+}
+
+// Admin-only actions (delete) are only permitted when not acting as client
+if ($isAdmin && $actingClientId === null && !empty($_GET['delete_id'])) {
     $deleteId = (int) $_GET['delete_id'];
     $deleteStmt = $conn->prepare('DELETE FROM albums WHERE id = ?');
     $deleteStmt->bind_param('i', $deleteId);
@@ -19,22 +29,55 @@ if (!empty($_GET['delete_id'])) {
     exit;
 }
 
+// Load data for admin or client view
 $albums = [];
-$stmt = $conn->prepare("SELECT a.id, a.client_id, a.client_names, a.slug, a.s3_folder_path, a.created_at, COALESCE(c.display_name, CONCAT(c.title1, ' & ', c.title2, ' ', c.family_name)) AS display_name FROM albums a LEFT JOIN clients c ON c.id = a.client_id ORDER BY a.created_at DESC");
-$stmt->execute();
-$stmt->bind_result($albumId, $clientId, $clientNames, $slug, $s3FolderPath, $createdAt, $clientDisplay);
-while ($stmt->fetch()) {
-    $albums[] = [
-        'id' => $albumId,
-        'client_id' => $clientId,
-        'client_names' => $clientNames,
-        'client_display' => $clientDisplay,
-        'slug' => $slug,
-        's3_folder_path' => $s3FolderPath,
-        'created_at' => $createdAt,
-    ];
+if ($isAdmin && $actingClientId === null) {
+    // Admin (global) view - list all albums with edit/delete controls
+    $stmt = $conn->prepare("SELECT a.id, a.client_id, a.client_names, a.slug, a.s3_folder_path, a.created_at, COALESCE(c.display_name, CONCAT(c.title1, ' & ', c.title2, ' ', c.family_name)) AS display_name FROM albums a LEFT JOIN clients c ON c.id = a.client_id ORDER BY a.created_at DESC");
+    $stmt->execute();
+    $stmt->bind_result($albumId, $clientId, $clientNames, $slug, $s3FolderPath, $createdAt, $clientDisplay);
+    while ($stmt->fetch()) {
+        $albums[] = [
+            'id' => $albumId,
+            'client_id' => $clientId,
+            'client_names' => $clientNames,
+            'client_display' => $clientDisplay,
+            'slug' => $slug,
+            's3_folder_path' => $s3FolderPath,
+            'created_at' => $createdAt,
+        ];
+    }
+    $stmt->close();
+} else {
+    // Client view - list albums for acting client
+    if ($actingClientId !== null) {
+        $stmt = $conn->prepare('SELECT id, client_names, slug, s3_folder_path, created_at FROM albums WHERE client_id = ? ORDER BY created_at DESC');
+        $stmt->bind_param('i', $actingClientId);
+        $stmt->execute();
+        $stmt->bind_result($albumId, $clientNames, $slug, $s3FolderPath, $createdAt);
+        while ($stmt->fetch()) {
+            $albums[] = [
+                'id' => $albumId,
+                'client_names' => $clientNames,
+                'slug' => $slug,
+                's3_folder_path' => $s3FolderPath,
+                'created_at' => $createdAt,
+            ];
+        }
+        $stmt->close();
+    }
 }
-$stmt->close();
+
+// If acting as client or viewing as client, fetch client display name
+$actingClientDisplay = null;
+if ($actingClientId !== null) {
+    $cstmt = $conn->prepare("SELECT COALESCE(display_name, CONCAT(title1, ' & ', title2, ' ', family_name)) FROM clients WHERE id = ? LIMIT 1");
+    $cstmt->bind_param('i', $actingClientId);
+    $cstmt->execute();
+    $cstmt->bind_result($actingClientDisplay);
+    $cstmt->fetch();
+    $cstmt->close();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -57,14 +100,29 @@ $stmt->close();
                                 <div class="level">
                                     <div class="level-left">
                                         <div>
-                                            <h1 class="title">Album Management</h1>
-                                            <p class="subtitle">List of configured client galleries.</p>
+                                            <?php if ($actingClientId !== null): ?>
+                                                <h1 class="title">Galleries for <?php echo htmlspecialchars($actingClientDisplay ?: 'Client'); ?></h1>
+                                                <p class="subtitle">Viewing galleries assigned to this client.</p>
+                                                <?php if ($isAdmin): ?>
+                                                    <div class="notification is-info">You are viewing the site as <strong><?php echo htmlspecialchars($actingClientDisplay ?: 'client'); ?></strong>. <a href="dashboard.php">Stop acting</a>.</div>
+                                                <?php endif; ?>
+                                            <?php elseif ($isAdmin): ?>
+                                                <h1 class="title">Album Management</h1>
+                                                <p class="subtitle">List of configured client galleries.</p>
+                                            <?php else: ?>
+                                                <h1 class="title">Your Galleries</h1>
+                                                <p class="subtitle">All galleries assigned to your account.</p>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
                                     <div class="level-right">
-                                        <a class="button is-primary" href="create_album.php"><i class="fas fa-plus"></i>&nbsp;<span>Create Album</span></a>
-                                        <a class="button is-primary is-light" href="create_client.php"><i class="fas fa-user"></i>&nbsp;<span>Create Client</span></a>
-                                        <a class="button is-light" href="change_password.php"><i class="fas fa-key"></i>&nbsp;<span>Change password</span></a>
+                                        <?php if ($isAdmin && $actingClientId === null): ?>
+                                            <a class="button is-primary" href="create_album.php"><i class="fas fa-plus"></i>&nbsp;<span>Create Album</span></a>
+                                            <a class="button is-primary is-light" href="create_client.php"><i class="fas fa-user"></i>&nbsp;<span>Create Client</span></a>
+                                            <a class="button is-light" href="change_password.php"><i class="fas fa-key"></i>&nbsp;<span>Change password</span></a>
+                                        <?php elseif ($isClient && $actingClientId === null): ?>
+                                            <a class="button is-light" href="change_client_password.php"><i class="fas fa-key"></i>&nbsp;<span>Change password</span></a>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                                 <?php if ($flashMessage): ?>
@@ -81,7 +139,9 @@ $stmt->close();
                                     <table class="table is-fullwidth is-striped is-hoverable">
                                         <thead>
                                             <tr>
-                                                <th>Client</th>
+                                                <?php if ($isAdmin && $actingClientId === null): ?>
+                                                    <th>Client</th>
+                                                <?php endif; ?>
                                                 <th>Slug</th>
                                                 <th>S3 Folder</th>
                                                 <th>Created</th>
@@ -96,21 +156,30 @@ $stmt->close();
                                             <?php else: ?>
                                                 <?php foreach ($albums as $album): ?>
                                                     <tr>
-                                                        <td><?php echo htmlspecialchars($album['client_display'] ?: $album['client_names']); ?></td>
+                                                        <?php if ($isAdmin && $actingClientId === null): ?>
+                                                            <td><?php echo htmlspecialchars($album['client_display'] ?? ($album['client_names'] ?? '')); ?></td>
+                                                        <?php endif; ?>
                                                         <td><code><?php echo htmlspecialchars($album['slug']); ?></code></td>
                                                         <td><?php echo htmlspecialchars($album['s3_folder_path']); ?></td>
                                                         <td><?php echo htmlspecialchars($album['created_at']); ?></td>
                                                         <td>
                                                             <div class="buttons">
-                                                                <a class="button is-small" href="create_album.php?id=<?php echo $album['id']; ?>">
-                                                                    <span class="icon is-small"><i class="fas fa-edit"></i></span>
-                                                                </a>
-                                                                <a class="button is-small is-danger" href="?delete_id=<?php echo $album['id']; ?>" onclick="return confirm('Remove album permanently?');">
-                                                                    <span class="icon is-small"><i class="fas fa-trash"></i></span>
-                                                                </a>
+                                                                <?php if ($isAdmin && $actingClientId === null): ?>
+                                                                    <a class="button is-small" href="create_album.php?id=<?php echo $album['id']; ?>">
+                                                                        <span class="icon is-small"><i class="fas fa-edit"></i></span>
+                                                                    </a>
+                                                                    <a class="button is-small is-danger" href="?delete_id=<?php echo $album['id']; ?>" onclick="return confirm('Remove album permanently?');">
+                                                                        <span class="icon is-small"><i class="fas fa-trash"></i></span>
+                                                                    </a>
+                                                                <?php endif; ?>
                                                                 <a class="button is-small is-link" href="gallery.php?slug=<?php echo urlencode($album['slug']); ?>" target="_blank">
                                                                     <span class="icon is-small"><i class="fas fa-eye"></i></span>
                                                                 </a>
+                                                                <?php if ($isAdmin && $album['client_id']): ?>
+                                                                    <a class="button is-small is-primary" href="dashboard.php?as_client=<?php echo (int) $album['client_id']; ?>" title="Act as this client">
+                                                                        <span class="icon is-small"><i class="fas fa-user-secret"></i></span>
+                                                                    </a>
+                                                                <?php endif; ?>
                                                             </div>
                                                         </td>
                                                     </tr>

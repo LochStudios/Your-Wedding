@@ -26,7 +26,7 @@ if ($slug === '') {
             $stmt->bind_result($foundId, $passwordHash);
             if ($stmt->fetch() && password_verify($password, $passwordHash)) {
                 $_SESSION['client_logged_in'] = (int) $foundId;
-                header('Location: client_dashboard.php');
+                header('Location: dashboard.php');
                 exit;
             }
             $stmt->close();
@@ -126,7 +126,7 @@ if ($album === null) {
                 $stmt->bind_result($foundId, $passwordHash);
                 if ($stmt->fetch() && password_verify($password, $passwordHash)) {
                     $_SESSION['client_logged_in'] = (int) $foundId;
-                    header('Location: client_dashboard.php');
+                    header('Location: dashboard.php');
                     exit;
                 }
                 $stmt->close();
