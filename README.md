@@ -39,6 +39,11 @@ A lightweight, custom PHP gallery for wedding clients. Admins create albums that
 5. If you forget the admin password, visit `/forgot_password.php` to generate a single-use reset token. If the admin account has an `email` set and SMTP is configured, the link will be sent by email; otherwise the link will be shown on the page for convenience.
 6. Share `/gallery.php?slug=<slug>` and the album password with your clients or create a client account so they can sign in to see all assigned galleries.
 
+## Optional: Custom S3/CDN base URL
+
+If you'd like to use a CDN or a custom domain (e.g., CloudFront) instead of presigned S3 URLs, set the environment variable `YOUR_WEDDING_AWS_S3_URL` in your secure config file to the base URL for object access, e.g. `https://d123abcd.cloudfront.net` or `https://s3.amazonaws.com/my-bucket`.
+When set, the application will construct object URLs using that base URL instead of generating presigned links.
+
 ## Notes
 
 - All SQL uses prepared statements to keep injection risk low.

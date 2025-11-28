@@ -251,9 +251,16 @@ if ($accessGranted) {
                     if (str_ends_with($object['Key'], '/')) {
                         continue;
                     }
-                    $cmd = $s3->getCommand('GetObject', ['Bucket' => $bucket, 'Key' => $object['Key']]);
-                    $request = $s3->createPresignedRequest($cmd, '+15 minutes');
-                    $galleryImages[] = (string) $request->getUri();
+                    // If an S3 base URL is configured (e.g. CloudFront/CNAME), build direct
+                    // URLs to objects on that domain. Otherwise, fall back to presigned URLs.
+                    $s3BaseUrl = get_s3_base_url();
+                    if (!empty($s3BaseUrl)) {
+                        $galleryImages[] = $s3BaseUrl . '/' . ltrim($object['Key'], '/');
+                    } else {
+                        $cmd = $s3->getCommand('GetObject', ['Bucket' => $bucket, 'Key' => $object['Key']]);
+                        $request = $s3->createPresignedRequest($cmd, '+15 minutes');
+                        $galleryImages[] = (string) $request->getUri();
+                    }
                 }
                 $params['ContinuationToken'] = $result['NextContinuationToken'] ?? null;
             } while (!empty($params['ContinuationToken']));

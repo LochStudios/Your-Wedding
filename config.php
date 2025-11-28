@@ -50,6 +50,7 @@ $config = [
         'secret' => $YOUR_WEDDING_AWS_SECRET ?: '',
         'region' => $YOUR_WEDDING_AWS_REGION ?: 'ap-southeast-2',
         'bucket' => $YOUR_WEDDING_AWS_BUCKET ?: '',
+        's3_url' => $YOUR_WEDDING_AWS_S3_URL ?: '',
     ],
     'features' => [
         'admin_portal_visible' => filter_var($YOUR_WEDDING_ADMIN_PORTAL_VISIBLE ?? true, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? true,
@@ -210,6 +211,18 @@ function get_aws_bucket(): string
 {
     global $config;
     return $config['aws']['bucket'];
+}
+
+/**
+ * Return a custom S3 base URL (cloudfront/CNAME or S3 endpoint) if configured.
+ * If empty, null is returned and calling code should fallback to presigned URLs or
+ * SDK-generated defaults.
+ */
+function get_s3_base_url(): ?string
+{
+    global $config;
+    $url = trim($config['aws']['s3_url'] ?? '');
+    return $url === '' ? null : rtrim($url, '/');
 }
 
 function require_admin_session(): void
