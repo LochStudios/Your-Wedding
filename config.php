@@ -54,6 +54,7 @@ $config = [
         's3_url' => $YOUR_WEDDING_AWS_S3_URL ?: '',
         's3_endpoint' => $YOUR_WEDDING_AWS_S3_ENDPOINT ?: '',
         's3_url_includes_bucket' => filter_var($YOUR_WEDDING_AWS_S3_URL_INCLUDES_BUCKET ?? false, FILTER_VALIDATE_BOOL),
+        'sign_urls' => filter_var($YOUR_WEDDING_AWS_S3_SIGN_URLS ?? true, FILTER_VALIDATE_BOOL),
     ],
     'features' => [
         'admin_portal_visible' => filter_var($YOUR_WEDDING_ADMIN_PORTAL_VISIBLE ?? true, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? true,
@@ -355,6 +356,12 @@ function get_s3_url_includes_bucket(): bool
 {
     global $config;
     return !empty($config['aws']['s3_url_includes_bucket']);
+}
+
+function get_s3_signing_enabled(): bool
+{
+    global $config;
+    return !empty($config['aws']['sign_urls']);
 }
 
 /**

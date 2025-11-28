@@ -44,7 +44,9 @@ A lightweight, custom PHP gallery for wedding clients. Admins create albums that
 If you'd like to use a CDN or a custom domain (e.g., CloudFront) instead of presigned S3 URLs, set the environment variable `YOUR_WEDDING_AWS_S3_URL` in your secure config file to the base URL for object access, e.g. `https://d123abcd.cloudfront.net` or `https://s3.amazonaws.com/my-bucket`.
 If you use an S3-compatible provider such as Linode Object Storage, prefer the region-specific endpoint (e.g., `https://us-east-1.linodeobjects.com`) rather than the root domain (`linodeobjects.com`) which will not resolve. Example:
 
-When set, the application will construct object URLs using that base URL instead of generating presigned links.
+When set, the application will construct object URLs using that base URL instead of generating presigned links when no S3 credentials are available.
+If S3 credentials are configured (access key/secret), the app will default to generating presigned URLs for objects so private buckets can be securely accessed by clients. To control this behavior, set `YOUR_WEDDING_AWS_S3_SIGN_URLS` to `false` to prefer direct CDN or base URL links.
+Note: CloudFront signing (signed cookies / signed URLs using CloudFront key pairs) is not supported by this app. If you need CloudFront-signed URLs, configure CloudFront to work with private S3 via origin access identities (OAI) or generate CloudFront signed URLs externally.
 If `YOUR_WEDDING_AWS_S3_URL` is set to a provider root (e.g. `linodeobjects.com`) and `YOUR_WEDDING_AWS_BUCKET` and `YOUR_WEDDING_AWS_REGION` are set, the app attempts to auto-derive the endpoint as `https://<bucket>.<region>.linodeobjects.com`. For best results, set `YOUR_WEDDING_AWS_S3_ENDPOINT` explicitly.
 
 ## Notes
