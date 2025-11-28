@@ -158,8 +158,8 @@ if ($album === null) {
         </head>
         <body>
             <?php include_once __DIR__ . '/nav.php'; ?>
-            <section class="section">
-                <div class="container">
+            <section class="section full-bleed full-height">
+                <div class="container is-fluid">
                     <div class="columns is-centered">
                         <div class="column is-6">
                             <div class="box" style="text-align:center;">
@@ -331,8 +331,8 @@ if ($accessGranted) {
     <body>
         <?php include_once __DIR__ . '/nav.php'; ?>
         <?php if (!$accessGranted): ?>
-            <section class="section">
-                <div class="container">
+            <section class="section full-bleed full-height">
+                <div class="container is-fluid">
                     <div class="box access-card">
                         <h1 class="title">Access Gallery</h1>
                         <p class="subtitle">Enter the password for <span class="has-text-weight-bold"><?php echo htmlspecialchars($album['client_display_name'] ?: $album['client_names']); ?></span>.</p>
@@ -359,18 +359,21 @@ if ($accessGranted) {
                 </div>
             </section>
         <?php else: ?>
-            <section class="section">
-                <div class="container">
+            <section class="section full-bleed full-height">
+                <div class="container is-fluid">
                     <div class="columns is-vcentered">
                         <div class="column">
                             <h1 class="title"><?php echo htmlspecialchars($album['client_display_name'] ?: $album['client_names']); ?></h1>
                             <p class="subtitle">Enjoy your celebration!</p>
                         </div>
-                        <div class="column has-text-right">
+                            <div class="column has-text-right">
                             <?php if (!empty($_SESSION['client_logged_in'])): ?>
                                 <a class="button is-light" href="logout.php">Sign out</a>
                             <?php endif; ?>
-                            <a class="button is-light" href="/">Back to Landing</a>
+                                <?php if (!empty($galleryImages) && count(array_filter($galleryImages)) > 0): ?>
+                                    <button id="downloadAllBtn" class="button is-link">Download All</button>
+                                <?php endif; ?>
+                                <a class="button is-light" href="/">Back to Landing</a>
                         </div>
                     </div>
                     <?php if (!empty($s3Error)): ?>
@@ -399,18 +402,77 @@ if ($accessGranted) {
                 </div>
             </section>
             <div class="lightbox-overlay" id="lightbox">
+                <button class="lightbox-close" id="lightboxClose" aria-label="Close">×</button>
+                <button class="lightbox-prev" id="lightboxPrev" aria-label="Previous">‹</button>
+                <button class="lightbox-next" id="lightboxNext" aria-label="Next">›</button>
+                <a class="button lightbox-download" id="lightboxDownload" href="#" target="_blank" rel="noopener">Download</a>
                 <img src="" alt="Full size" />
             </div>
             <script>
                 const overlay = document.getElementById('lightbox');
                 const overlayImage = overlay.querySelector('img');
-                document.querySelectorAll('.gallery-grid img').forEach((thumb) => {
+                const nextBtn = document.getElementById('lightboxNext');
+                const prevBtn = document.getElementById('lightboxPrev');
+                const closeBtn = document.getElementById('lightboxClose');
+                const downloadBtn = document.getElementById('lightboxDownload');
+                const downloadAllBtn = document.getElementById('downloadAllBtn');
+
+                const thumbs = Array.from(document.querySelectorAll('.gallery-grid img[data-full]'));
+                const images = thumbs.map(t => t.dataset.full).filter(Boolean);
+                let currentIndex = 0;
+                const imagesLen = images.length;
+                thumbs.forEach((thumb, idx) => {
                     thumb.addEventListener('click', () => {
-                        overlayImage.src = thumb.dataset.full;
+                        currentIndex = idx;
+                        overlayImage.src = images[currentIndex];
+                        downloadBtn.href = images[currentIndex] || '#';
                         overlay.classList.add('active');
                     });
                 });
-                overlay.addEventListener('click', () => overlay.classList.remove('active'));
+                function showIndex(i) {
+                    if (imagesLen === 0) return;
+                    let idx = i;
+                    if (idx < 0) idx = (idx % imagesLen + imagesLen) % imagesLen;
+                    if (idx >= imagesLen) idx = idx % imagesLen;
+                    currentIndex = idx;
+                    overlayImage.src = images[currentIndex];
+                    downloadBtn.href = images[currentIndex] || '#';
+                }
+                nextBtn.addEventListener('click', (e) => { e.stopPropagation(); showIndex(currentIndex + 1); });
+                prevBtn.addEventListener('click', (e) => { e.stopPropagation(); showIndex(currentIndex - 1); });
+                closeBtn.addEventListener('click', () => overlay.classList.remove('active'));
+                downloadBtn.setAttribute('download', '');
+                downloadBtn.addEventListener('click', (e) => {
+                    if (!images[currentIndex]) { e.preventDefault(); return; }
+                    // Let the link act as download; for cross origin signed URLs this should download.
+                });
+                // Download All
+                if (downloadAllBtn) {
+                    downloadAllBtn.addEventListener('click', () => {
+                        // Attempt to download each image sequentially via anchors
+                        images.forEach((url, i) => {
+                            if (!url) return;
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = '';
+                            a.target = '_blank';
+                            document.body.appendChild(a);
+                            setTimeout(() => { a.click(); a.remove(); }, 250 * i);
+                        });
+                    });
+                }
+                overlay.addEventListener('click', (e) => {
+                    if (e.target === overlay || e.target === overlayImage) {
+                        overlay.classList.remove('active');
+                    }
+                });
+
+                document.addEventListener('keydown', (e) => {
+                    if (!overlay.classList.contains('active')) return;
+                    if (e.key === 'ArrowRight') { showIndex((currentIndex + 1) % images.length); }
+                    if (e.key === 'ArrowLeft') { showIndex((currentIndex - 1 + images.length) % images.length); }
+                    if (e.key === 'Escape') { overlay.classList.remove('active'); }
+                });
             </script>
         <?php endif; ?>
     </body>
