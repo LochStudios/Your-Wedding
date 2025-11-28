@@ -274,7 +274,12 @@ if ($accessGranted) {
                 $params['ContinuationToken'] = $result['NextContinuationToken'] ?? null;
             } while (!empty($params['ContinuationToken']));
         } catch (\Aws\Exception\AwsException $exception) {
-            $s3Error = 'Unable to list gallery. ' . $exception->getMessage();
+            $awsCode = method_exists($exception, 'getAwsErrorCode') ? $exception->getAwsErrorCode() : null;
+            if ($awsCode === 'NoSuchKey') {
+                $s3Error = 'NoSuchKey: There were no objects found at the specified prefix. Please verify the album S3 folder path and that objects have been uploaded to the configured bucket/prefix.';
+            } else {
+                $s3Error = 'Unable to list gallery. ' . $exception->getMessage();
+            }
         }
     }
 }
@@ -325,7 +330,7 @@ if ($accessGranted) {
                     <div class="columns is-vcentered">
                         <div class="column">
                             <h1 class="title"><?php echo htmlspecialchars($album['client_display_name'] ?: $album['client_names']); ?></h1>
-                            <p class="subtitle">Enjoy your celebration captured and stored securely on S3.</p>
+                            <p class="subtitle">Enjoy your celebration!</p>
                         </div>
                         <div class="column has-text-right">
                             <?php if (!empty($_SESSION['client_logged_in'])): ?>

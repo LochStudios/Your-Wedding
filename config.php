@@ -227,7 +227,25 @@ function get_s3_client(): ?S3Client
                 $endpoint = 'https://' . $endpoint;
             }
             $clientConfig['endpoint'] = rtrim($endpoint, '/');
-            $clientConfig['use_path_style_endpoint'] = true;
+            // If the configured endpoint host already contains the bucket name
+            // (e.g., bucket.region.linodeobjects.com), use virtual-host style
+            // (do not enable path-style). Otherwise, enable path-style so the
+            // SDK will include the /{bucket}/ path when making requests.
+            $host = parse_url($clientConfig['endpoint'], PHP_URL_HOST) ?: '';
+            $bucket = (string)($aws['bucket'] ?? '');
+            $endpointIncludesBucket = false;
+            if ($bucket !== '' && $host !== '') {
+                // If the host starts with the bucket name (common virtual-host)
+                if (stripos($host, $bucket . '.') === 0) {
+                    $endpointIncludesBucket = true;
+                }
+                // Or if the host contains /{bucket} in the path, assume includes bucket
+                $path = parse_url($clientConfig['endpoint'], PHP_URL_PATH) ?: '';
+                if ($path !== '' && stripos($path, '/' . $bucket) !== false) {
+                    $endpointIncludesBucket = true;
+                }
+            }
+            $clientConfig['use_path_style_endpoint'] = !$endpointIncludesBucket;
         }
         // If we have an endpoint, perform a quick DNS resolution check to avoid
         // the AWS SDK throwing cURL error 6 when an invalid host is configured.
