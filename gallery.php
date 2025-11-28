@@ -91,7 +91,7 @@ if ($accessGranted) {
                 <div class="container">
                     <div class="box access-card">
                         <h1 class="title">Access Gallery</h1>
-                        <p class="subtitle">Enter the password for <strong><?php echo htmlspecialchars($album['client_names']); ?></strong>.</p>
+                        <p class="subtitle">Enter the password for <span class="has-text-weight-bold"><?php echo htmlspecialchars($album['client_names']); ?></span>.</p>
                         <?php if ($passwordError): ?>
                             <div class="notification is-danger"><?php echo htmlspecialchars($passwordError); ?></div>
                         <?php endif; ?>
