@@ -2,9 +2,89 @@
 require_once __DIR__ . '/config.php';
 
 $slug = trim($_GET['slug'] ?? '');
+
+// If accessed without a slug, present an inline client login that logs a user in by Client ID and password
+$clientLoginError = '';
 if ($slug === '') {
-    http_response_code(404);
-    echo 'Album not found.';
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $clientIdInput = trim($_POST['client_id'] ?? '');
+        $password = $_POST['client_password'] ?? '';
+        if ($clientIdInput === '' || $password === '') {
+            $clientLoginError = 'Both fields are required.';
+        } else {
+            $conn = get_db_connection();
+            // Support numeric ID or username/email input
+            if (is_numeric($clientIdInput)) {
+                $stmt = $conn->prepare('SELECT id, password_hash FROM clients WHERE id = ? LIMIT 1');
+                $cid = (int) $clientIdInput;
+                $stmt->bind_param('i', $cid);
+            } else {
+                $stmt = $conn->prepare('SELECT id, password_hash FROM clients WHERE username = ? LIMIT 1');
+                $stmt->bind_param('s', $clientIdInput);
+            }
+            $stmt->execute();
+            $stmt->bind_result($foundId, $passwordHash);
+            if ($stmt->fetch() && password_verify($password, $passwordHash)) {
+                $_SESSION['client_logged_in'] = (int) $foundId;
+                header('Location: client_dashboard.php');
+                exit;
+            }
+            $stmt->close();
+            $clientLoginError = 'Invalid client ID or password.';
+        }
+    }
+    // Render the inline client login UI
+    ?>
+    <!DOCTYPE html>
+    <html lang="en">
+        <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <title>Access Your Galleries | Your Wedding</title>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.css" />
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <link rel="stylesheet" href="style.css?v=<?php echo uuidv4(); ?>" />
+        </head>
+        <body>
+            <?php include_once __DIR__ . '/nav.php'; ?>
+            <section class="section">
+                <div class="container">
+                    <div class="columns is-centered">
+                        <div class="column is-6">
+                            <div class="box" style="text-align:center;">
+                                <h1 class="title">Enter Client ID</h1>
+                                <p class="subtitle">Enter the Client ID and password to view your assigned galleries.</p>
+                                <?php if ($clientLoginError): ?>
+                                    <div class="notification is-danger"><?php echo htmlspecialchars($clientLoginError); ?></div>
+                                <?php endif; ?>
+                                <form method="post">
+                                    <div class="field">
+                                        <label class="label">Client ID or Username</label>
+                                        <div class="control">
+                                            <input class="input" type="text" name="client_id" placeholder="Client ID or username" required />
+                                        </div>
+                                    </div>
+                                    <div class="field">
+                                        <label class="label">Password</label>
+                                        <div class="control">
+                                            <input class="input" type="password" name="client_password" placeholder="Password" required />
+                                        </div>
+                                    </div>
+                                    <div class="field">
+                                        <div class="control">
+                                            <button class="button is-link is-fullwidth" type="submit">Sign In</button>
+                                        </div>
+                                    </div>
+                                    <p class="has-text-grey">Don't have a Client ID? Contact the person who delivered your gallery to set one up.</p>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </body>
+    </html>
+    <?php
     exit;
 }
 
@@ -26,8 +106,110 @@ if ($stmt->fetch()) {
 $stmt->close();
 
 if ($album === null) {
-    http_response_code(404);
-    echo 'Album not found.';
+    // Provide a friendly UI for invalid slug: allow searching by slug or signing in with Client ID
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // Client login post
+        if (!empty($_POST['client_id']) && isset($_POST['client_password'])) {
+            $clientIdInput = trim($_POST['client_id'] ?? '');
+            $password = $_POST['client_password'] ?? '';
+            if ($clientIdInput !== '' && $password !== '') {
+                $conn = get_db_connection();
+                if (is_numeric($clientIdInput)) {
+                    $stmt = $conn->prepare('SELECT id, password_hash FROM clients WHERE id = ? LIMIT 1');
+                    $cid = (int) $clientIdInput;
+                    $stmt->bind_param('i', $cid);
+                } else {
+                    $stmt = $conn->prepare('SELECT id, password_hash FROM clients WHERE username = ? LIMIT 1');
+                    $stmt->bind_param('s', $clientIdInput);
+                }
+                $stmt->execute();
+                $stmt->bind_result($foundId, $passwordHash);
+                if ($stmt->fetch() && password_verify($password, $passwordHash)) {
+                    $_SESSION['client_logged_in'] = (int) $foundId;
+                    header('Location: client_dashboard.php');
+                    exit;
+                }
+                $stmt->close();
+                $clientLoginError = 'Invalid client ID or password.';
+            } else {
+                $clientLoginError = 'Both fields are required.';
+            }
+        }
+        // Slug search post
+        if (!empty($_POST['search_slug'])) {
+            $searchSlug = trim($_POST['search_slug']);
+            if ($searchSlug !== '') {
+                header('Location: gallery.php?slug=' . urlencode($searchSlug));
+                exit;
+            }
+        }
+    }
+    // Render the album-not-found page with helpful actions
+    ?>
+    <!DOCTYPE html>
+    <html lang="en">
+        <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <title>Album not found | Your Wedding</title>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.css" />
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <link rel="stylesheet" href="style.css?v=<?php echo uuidv4(); ?>" />
+        </head>
+        <body>
+            <?php include_once __DIR__ . '/nav.php'; ?>
+            <section class="section">
+                <div class="container">
+                    <div class="columns is-centered">
+                        <div class="column is-6">
+                            <div class="box" style="text-align:center;">
+                                <h1 class="title">Album not found</h1>
+                                <p class="subtitle">We can't find that gallery. Try these options below:</p>
+                                <?php if (!empty($clientLoginError)): ?>
+                                    <div class="notification is-danger"><?php echo htmlspecialchars($clientLoginError); ?></div>
+                                <?php endif; ?>
+                                <form method="post" style="margin-bottom:1rem;">
+                                    <div class="field">
+                                        <label class="label">Gallery Slug</label>
+                                        <div class="control has-icons-right">
+                                            <input class="input" type="text" name="search_slug" placeholder="Enter gallery slug (e.g. john-jane)" />
+                                            <button class="button is-link mt-2" type="submit">Find Gallery</button>
+                                        </div>
+                                    </div>
+                                </form>
+                                <hr />
+                                <p class="subtitle">Or, sign in with your Client ID to access all your galleries:</p>
+                                <form method="post">
+                                    <div class="field">
+                                        <label class="label">Client ID or Username</label>
+                                        <div class="control">
+                                            <input class="input" type="text" name="client_id" placeholder="Client ID or username" />
+                                        </div>
+                                    </div>
+                                    <div class="field">
+                                        <label class="label">Password</label>
+                                        <div class="control">
+                                            <input class="input" type="password" name="client_password" placeholder="Password" />
+                                        </div>
+                                    </div>
+                                    <div class="field">
+                                        <div class="control">
+                                            <button class="button is-link is-fullwidth" type="submit">Sign In</button>
+                                        </div>
+                                    </div>
+                                </form>
+                                <p class="has-text-grey">If you don't have a Client ID, contact the person who delivered your gallery to set one up.</p>
+                                <div class="mt-4">
+                                    <a href="/" class="button is-light">Back to Home</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </body>
+    </html>
+    <?php
     exit;
 }
 
