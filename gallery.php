@@ -371,7 +371,7 @@ if ($accessGranted) {
                                 <a class="button is-light" href="logout.php">Sign out</a>
                             <?php endif; ?>
                                 <?php if (!empty($galleryImages) && count(array_filter($galleryImages)) > 0): ?>
-                                    <button id="downloadAllBtn" class="button is-link">Download All</button>
+                                    <a id="downloadAllBtn" class="button is-link" href="download_all.php?slug=<?php echo urlencode($slug); ?>">Download All</a>
                                 <?php endif; ?>
                                 <a class="button is-light" href="/">Back to Landing</a>
                         </div>
