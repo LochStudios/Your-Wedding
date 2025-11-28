@@ -138,16 +138,16 @@ require_once __DIR__ . '/config.php';
                 <div class="columns">
                     <div class="column">
                         <p class="subtitle">Reach out to LochStudios to set up your private gallery experience.</p>
-                        <p><span class="has-text-weight-bold">Phone</strong></p>
+                        <p><span class="has-text-weight-bold">Phone</span></p>
                         <p><i class="fas fa-phone"></i> Australia: +61 (2) 5632-3092</p>
                         <p><i class="fas fa-phone"></i> New Zealand: +64 (9) 873-1233</p>
                         <p><i class="fas fa-phone"></i> United States: +1 (315) 879-6488</p>
                         <p><i class="fas fa-phone"></i> United Kingdom: +44 2080 899 548</p>
-                        <p class="mt-3"><span class="has-text-weight-bold">Email</strong></p>
+                        <p class="mt-3"><span class="has-text-weight-bold">Email</span></p>
                         <p><i class="fas fa-envelope"></i> Sales: <a href="mailto:sales@lochstudios.com">sales@lochstudios.com</a></p>
                         <p><i class="fas fa-envelope"></i> Support: <a href="mailto:support@lochstudios.com">support@lochstudios.com</a></p>
                         <p><i class="fas fa-envelope"></i> Media: <a href="mailto:media@lochstudios.com">media@lochstudios.com</a></p>
-                        <p class="mt-3"><span class="has-text-weight-bold">Locations</strong></p>
+                        <p class="mt-3"><span class="has-text-weight-bold">Locations</span></p>
                         <p><i class="fas fa-mail-bulk"></i> Mailing Address: PO Box 219, South Grafton, NSW, 2460, Australia</p>
                         <p><i class="fas fa-building"></i> Office Location: Level 5, 115 Pitt Street, Sydney, NSW, 2000, Australia</p>
                     </div>
