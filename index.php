@@ -49,7 +49,7 @@ require_once __DIR__ . '/config.php';
                 </div>
             </div>
         </section>
-        <section class="section has-background-white">
+        <section class="section">
             <div class="container">
                 <h2 class="title">What we do</h2>
                 <div class="columns">
