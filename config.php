@@ -2,18 +2,35 @@
 declare(strict_types=1);
 
 /* Ensure the configured session save directory exists so PHP can write session files. */
-$sessionSavePath = ini_get('session.save_path');
-if ($sessionSavePath) {
-    $segments = explode(';', $sessionSavePath);
-    $sessionDir = trim(end($segments));
+function ensure_session_directory(): void
+{
+    $sessionSavePath = ini_get('session.save_path');
+    $sessionDir = '';
+    if ($sessionSavePath) {
+        $segments = explode(';', $sessionSavePath);
+        $sessionDir = trim(end($segments));
+    }
+    if ($sessionDir === '' || !create_session_directory($sessionDir)) {
+        $sessionDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'lochstudios_sessions';
+        create_session_directory($sessionDir);
+    }
     if ($sessionDir !== '') {
-        if (!is_dir($sessionDir)) {
-            @mkdir($sessionDir, 0700, true);
-        }
         session_save_path($sessionDir);
     }
 }
 
+function create_session_directory(string $path): bool
+{
+    if ($path === '') {
+        return false;
+    }
+    if (is_dir($path)) {
+        return true;
+    }
+    return @mkdir($path, 0700, true);
+}
+
+ensure_session_directory();
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
