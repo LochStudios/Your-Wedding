@@ -1,15 +1,25 @@
 body {
     font-family: 'Helvetica Neue', 'Segoe UI', sans-serif;
-    background: linear-gradient(180deg, #f5f6fb 0%, #eef2ff 35%, #d7e1ff 100%);
-    color: #1e1e1e;
+    background: #05070f;
+    color: #f9fafb;
 }
 
-section.section,
-.hero,
+.hero {
+    background: linear-gradient(135deg, #0f172a, #1f2937 65%, #111827 100%);
+}
+
+.section {
+    background: transparent;
+    color: #f1f5f9;
+}
+
+.section .box,
+.section .card,
 .footer,
-.box,
-.card {
-    background-color: rgba(255, 255, 255, 0.95);
+.change-password-card,
+.dashboard-card {
+    background-color: rgba(15, 23, 42, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 .hero .title,
 .hero .subtitle {
