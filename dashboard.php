@@ -51,8 +51,14 @@ $stmt->close();
                     </div>
                     <div class="level-right">
                         <a class="button is-primary" href="create_album.php"><i class="fas fa-plus"></i>&nbsp;<span>Create Album</span></a>
+                        <a class="button is-light" href="change_password.php"><i class="fas fa-key"></i>&nbsp;<span>Change password</span></a>
                     </div>
                 </div>
+                <?php if (!empty($_SESSION['requires_password_reset'])): ?>
+                    <div class="notification is-warning">
+                        A password reset is required for this account. <a href="change_password.php">Update it now</a> before continuing.
+                    </div>
+                <?php endif; ?>
                 <div class="table-container">
                     <table class="table is-fullwidth is-striped is-hoverable">
                         <thead>
