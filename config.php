@@ -37,6 +37,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require_once '/home/lochstud/your-wedding-config/config.php';
 
+// Application configuration read from the secure config file and environment
 $config = [
     'db' => [
         'host' => $YOUR_WEDDING_DB_HOST ?: '127.0.0.1',
@@ -51,6 +52,8 @@ $config = [
         'region' => $YOUR_WEDDING_AWS_REGION ?: 'ap-southeast-2',
         'bucket' => $YOUR_WEDDING_AWS_BUCKET ?: '',
         's3_url' => $YOUR_WEDDING_AWS_S3_URL ?: '',
+        's3_endpoint' => $YOUR_WEDDING_AWS_S3_ENDPOINT ?: '',
+        's3_url_includes_bucket' => filter_var($YOUR_WEDDING_AWS_S3_URL_INCLUDES_BUCKET ?? false, FILTER_VALIDATE_BOOL),
     ],
     'features' => [
         'admin_portal_visible' => filter_var($YOUR_WEDDING_ADMIN_PORTAL_VISIBLE ?? true, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? true,
@@ -193,14 +196,33 @@ function get_s3_client(): ?S3Client
         return null;
     }
     try {
-        return new S3Client([
+        $clientConfig = [
             'version' => 'latest',
             'region' => $aws['region'],
             'credentials' => [
                 'key' => $aws['key'],
                 'secret' => $aws['secret'],
             ],
-        ]);
+        ];
+        // If an S3-compatible endpoint is configured explicitly, use it and default to
+        // path-style addressing so non-AWS providers (Linode, MinIO) work correctly.
+        $endpoint = trim($aws['s3_endpoint'] ?? '');
+        // If endpoint is not provided, try to use s3_url as an endpoint fallback
+        // for S3-compatible providers when the URL doesn't look like an AWS or CDN URL.
+        if ($endpoint === '') {
+            $maybe = trim($aws['s3_url'] ?? '');
+            if ($maybe !== '' && !preg_match('/cloudfront|s3\.amazonaws|amazonaws|s3-/', strtolower($maybe))) {
+                $endpoint = $maybe;
+            }
+        }
+        if ($endpoint !== '') {
+            if (!preg_match('#^https?://#', $endpoint)) {
+                $endpoint = 'https://' . $endpoint;
+            }
+            $clientConfig['endpoint'] = rtrim($endpoint, '/');
+            $clientConfig['use_path_style_endpoint'] = true;
+        }
+        return new S3Client($clientConfig);
     } catch (AwsException $exception) {
         error_log('S3 client initialization failed: ' . $exception->getMessage());
         return null;
@@ -222,7 +244,20 @@ function get_s3_base_url(): ?string
 {
     global $config;
     $url = trim($config['aws']['s3_url'] ?? '');
+    if ($url === '') {
+        return null;
+    }
+    // Ensure scheme is present so URL joins work correctly
+    if (!preg_match('#^https?://#', $url)) {
+        $url = 'https://' . $url;
+    }
     return $url === '' ? null : rtrim($url, '/');
+}
+
+function get_s3_url_includes_bucket(): bool
+{
+    global $config;
+    return !empty($config['aws']['s3_url_includes_bucket']);
 }
 
 function require_admin_session(): void

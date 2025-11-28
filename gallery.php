@@ -255,7 +255,13 @@ if ($accessGranted) {
                     // URLs to objects on that domain. Otherwise, fall back to presigned URLs.
                     $s3BaseUrl = get_s3_base_url();
                     if (!empty($s3BaseUrl)) {
-                        $galleryImages[] = $s3BaseUrl . '/' . ltrim($object['Key'], '/');
+                        $bucket = get_aws_bucket();
+                        $baseContainsBucket = stripos($s3BaseUrl, '/' . $bucket) !== false || stripos($s3BaseUrl, $bucket . '/') !== false || stripos($s3BaseUrl, $bucket) !== false;
+                        if ($baseContainsBucket || get_s3_url_includes_bucket()) {
+                            $galleryImages[] = $s3BaseUrl . '/' . ltrim($object['Key'], '/');
+                        } else {
+                            $galleryImages[] = $s3BaseUrl . '/' . $bucket . '/' . ltrim($object['Key'], '/');
+                        }
                     } else {
                         $cmd = $s3->getCommand('GetObject', ['Bucket' => $bucket, 'Key' => $object['Key']]);
                         $request = $s3->createPresignedRequest($cmd, '+15 minutes');
