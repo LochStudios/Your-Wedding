@@ -18,11 +18,17 @@ A lightweight, custom PHP gallery for wedding clients. Admins create albums that
 | `index.php` | Marketing landing page with hero, services, pricing, and contact sections. |
 | `style.css` | Custom Bulma overrides and gallery/lightbox styling. |
 | `login.php` | Admin login using bcrypt + sessions. |
+| `create_client.php` | Create client accounts for multi-gallery access (admin-only). |
+| `client_login.php` | Client login page — allows clients to sign-in and access all their assigned galleries. |
 | `forgot_password.php` | Request an admin password reset; generates a short-lived reset token. |
 | `reset_password.php` | Complete a password reset using a token. |
 | `dashboard.php` | Album list with edit/delete controls for authenticated admins and links to update album or password. |
 | `create_album.php` | Create or edit an album (slug auto-generation + password visibility). |
 | `gallery.php` | Client-facing gatekeeper that lists S3 images and displays them in a responsive grid with a modal viewer. |
+| `create_client.php` | Create client accounts for multi-gallery access (admin-only). |
+| `client_login.php` | Client login page — allows clients to sign-in and access all their assigned galleries. |
+| `client_dashboard.php` | Client-facing dashboard listing all galleries assigned to the logged-in client. |
+| `change_client_password.php` | Allow a logged-in client to change their password. |
 
 ## Setup
 
@@ -31,13 +37,13 @@ A lightweight, custom PHP gallery for wedding clients. Admins create albums that
 3. Point your webroot to this project so `index.php`, `login.php`, etc., are publicly accessible.
 4. Visit `/login.php`, use `admin`/`admin1234` (or update the seeded admin via SQL), then you'll be required to update the admin password before using the dashboard; a change-password link is also available.
 5. If you forget the admin password, visit `/forgot_password.php` to generate a single-use reset token. If the admin account has an `email` set and SMTP is configured, the link will be sent by email; otherwise the link will be shown on the page for convenience.
-6. Share `/gallery.php?slug=<slug>` and the album password with your clients.
-5. Share `/gallery.php?slug=<slug>` and the album password with your clients.
+6. Share `/gallery.php?slug=<slug>` and the album password with your clients or create a client account so they can sign in to see all assigned galleries.
 
 ## Notes
 
 - All SQL uses prepared statements to keep injection risk low.
 - Album passwords are stored in plain text so admins can display them when editing.
+- Albums can now be assigned to a client account so a client can login and access all their assigned galleries.
 - Admin routes show a full-screen **ACCESS DENIED** page for unauthorized requests.
 - Update the default admin password immediately after deployment.
 - To enable email delivery for password reset links, add an `email` against the admin account in the `admins` table and configure SMTP for PHP on your host.

@@ -117,7 +117,29 @@ CREATE TABLE IF NOT EXISTS albums (
 SQL;
 
     $conn->query($adminSql);
+    // Create clients table for multi-gallery support (associates albums to clients)
+    $clientSql = <<<'SQL'
+CREATE TABLE IF NOT EXISTS clients (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(191) UNIQUE DEFAULT NULL,
+    display_name VARCHAR(255) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    password_reset_token_hash VARCHAR(128) DEFAULT NULL,
+    password_reset_expires_at DATETIME DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+SQL;
+    $conn->query($clientSql);
     $conn->query($albumSql);
+    // Ensure albums have client_id column to link galleries to a client account (nullable)
+    try {
+        $result = $conn->query("SHOW COLUMNS FROM albums LIKE 'client_id'");
+        if ($result && $result->num_rows === 0) {
+            $conn->query('ALTER TABLE albums ADD COLUMN client_id INT DEFAULT NULL');
+        }
+    } catch (mysqli_sql_exception $e) {
+        // ignore
+    }
     ensure_admin_column($conn);
     ensure_default_admin($conn);
 }

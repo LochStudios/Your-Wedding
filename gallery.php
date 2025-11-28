@@ -9,14 +9,16 @@ if ($slug === '') {
 }
 
 $conn = get_db_connection();
-$stmt = $conn->prepare('SELECT client_names, album_password, s3_folder_path FROM albums WHERE slug = ? LIMIT 1');
+$stmt = $conn->prepare('SELECT a.client_id, a.client_names, a.album_password, a.s3_folder_path, c.display_name FROM albums a LEFT JOIN clients c ON c.id = a.client_id WHERE a.slug = ? LIMIT 1');
 $stmt->bind_param('s', $slug);
 $stmt->execute();
-$stmt->bind_result($clientNames, $albumPassword, $s3FolderPath);
+$stmt->bind_result($clientId, $clientNames, $albumPassword, $s3FolderPath, $clientDisplayName);
 $album = null;
 if ($stmt->fetch()) {
     $album = [
+        'client_id' => $clientId,
         'client_names' => $clientNames,
+        'client_display_name' => $clientDisplayName,
         'album_password' => $albumPassword,
         's3_folder_path' => $s3FolderPath,
     ];
@@ -34,6 +36,10 @@ if (!isset($_SESSION['album_access'])) {
 }
 
 $accessGranted = !empty($_SESSION['album_access'][$slug]);
+// If this album is assigned to a client, allow access when that client is logged in
+if (!$accessGranted && !empty($album['client_id']) && !empty($_SESSION['client_logged_in']) && $_SESSION['client_logged_in'] === $album['client_id']) {
+    $accessGranted = true;
+}
 $passwordError = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -80,7 +86,7 @@ if ($accessGranted) {
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title><?php echo htmlspecialchars($album['client_names']); ?> | Your Wedding Gallery</title>
+        <title><?php echo htmlspecialchars($album['client_display_name'] ?: $album['client_names']); ?> | Your Wedding Gallery</title>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
         <link rel="stylesheet" href="style.css?v=<?php echo uuidv4(); ?>" />
@@ -91,7 +97,10 @@ if ($accessGranted) {
                 <div class="container">
                     <div class="box access-card">
                         <h1 class="title">Access Gallery</h1>
-                        <p class="subtitle">Enter the password for <span class="has-text-weight-bold"><?php echo htmlspecialchars($album['client_names']); ?></span>.</p>
+                                        <p class="subtitle">Enter the password for <span class="has-text-weight-bold"><?php echo htmlspecialchars($album['client_display_name'] ?: $album['client_names']); ?></span>.</p>
+                                        <?php if (!empty($album['client_id'])): ?>
+                                            <p class="help">Or <a href="client_login.php?redirect=<?php echo urlencode('gallery.php?slug=' . $slug); ?>">Sign in as the assigned client</a> to view this and other galleries.</p>
+                                        <?php endif; ?>
                         <?php if ($passwordError): ?>
                             <div class="notification is-danger"><?php echo htmlspecialchars($passwordError); ?></div>
                         <?php endif; ?>
@@ -116,10 +125,13 @@ if ($accessGranted) {
                 <div class="container">
                     <div class="columns is-vcentered">
                         <div class="column">
-                            <h1 class="title"><?php echo htmlspecialchars($album['client_names']); ?></h1>
+                            <h1 class="title"><?php echo htmlspecialchars($album['client_display_name'] ?: $album['client_names']); ?></h1>
                             <p class="subtitle">Enjoy your celebration captured and stored securely on S3.</p>
                         </div>
                         <div class="column has-text-right">
+                            <?php if (!empty($_SESSION['client_logged_in'])): ?>
+                                <a class="button is-light" href="client_logout.php">Sign out</a>
+                            <?php endif; ?>
                             <a class="button is-light" href="/">Back to Landing</a>
                         </div>
                     </div>

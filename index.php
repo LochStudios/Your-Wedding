@@ -25,6 +25,10 @@ require_once __DIR__ . '/config.php';
                                 <span>Admins Only</span>
                             </a>
                         <?php endif; ?>
+                        <a class="button is-light is-medium" href="/client_login.php">
+                            <span class="icon"><i class="fas fa-user"></i></span>
+                            <span>Client Login</span>
+                        </a>
                         <a class="button is-light is-medium" href="#contact">
                             <span class="icon"><i class="fas fa-envelope"></i></span>
                             <span>Contact Us</span>

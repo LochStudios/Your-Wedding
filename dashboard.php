@@ -20,13 +20,15 @@ if (!empty($_GET['delete_id'])) {
 }
 
 $albums = [];
-$stmt = $conn->prepare('SELECT id, client_names, slug, s3_folder_path, created_at FROM albums ORDER BY created_at DESC');
+$stmt = $conn->prepare('SELECT a.id, a.client_id, a.client_names, a.slug, a.s3_folder_path, a.created_at, c.display_name FROM albums a LEFT JOIN clients c ON c.id = a.client_id ORDER BY a.created_at DESC');
 $stmt->execute();
-$stmt->bind_result($albumId, $clientNames, $slug, $s3FolderPath, $createdAt);
+$stmt->bind_result($albumId, $clientId, $clientNames, $slug, $s3FolderPath, $createdAt, $clientDisplay);
 while ($stmt->fetch()) {
     $albums[] = [
         'id' => $albumId,
+        'client_id' => $clientId,
         'client_names' => $clientNames,
+        'client_display' => $clientDisplay,
         'slug' => $slug,
         's3_folder_path' => $s3FolderPath,
         'created_at' => $createdAt,
@@ -60,6 +62,7 @@ $stmt->close();
                                     </div>
                                     <div class="level-right">
                                         <a class="button is-primary" href="create_album.php"><i class="fas fa-plus"></i>&nbsp;<span>Create Album</span></a>
+                                        <a class="button is-primary is-light" href="create_client.php"><i class="fas fa-user"></i>&nbsp;<span>Create Client</span></a>
                                         <a class="button is-light" href="change_password.php"><i class="fas fa-key"></i>&nbsp;<span>Change password</span></a>
                                     </div>
                                 </div>
@@ -92,7 +95,7 @@ $stmt->close();
                                             <?php else: ?>
                                                 <?php foreach ($albums as $album): ?>
                                                     <tr>
-                                                        <td><?php echo htmlspecialchars($album['client_names']); ?></td>
+                                                        <td><?php echo htmlspecialchars($album['client_display'] ?: $album['client_names']); ?></td>
                                                         <td><code><?php echo htmlspecialchars($album['slug']); ?></code></td>
                                                         <td><?php echo htmlspecialchars($album['s3_folder_path']); ?></td>
                                                         <td><?php echo htmlspecialchars($album['created_at']); ?></td>

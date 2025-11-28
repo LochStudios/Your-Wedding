@@ -7,6 +7,7 @@ $editing = false;
 $message = '';
 $errors = [];
 $album = [
+    'client_id' => null,
     'client_names' => '',
     'slug' => '',
     'album_password' => '',
@@ -16,12 +17,13 @@ $album = [
 if (!empty($_GET['id'])) {
     $editing = true;
     $albumId = (int) $_GET['id'];
-    $stmt = $conn->prepare('SELECT client_names, slug, album_password, s3_folder_path FROM albums WHERE id = ? LIMIT 1');
+    $stmt = $conn->prepare('SELECT client_id, client_names, slug, album_password, s3_folder_path FROM albums WHERE id = ? LIMIT 1');
     $stmt->bind_param('i', $albumId);
     $stmt->execute();
-    $stmt->bind_result($clientNames, $slug, $albumPassword, $s3Path);
+    $stmt->bind_result($clientId, $clientNames, $slug, $albumPassword, $s3Path);
     if ($stmt->fetch()) {
         $album = [
+            'client_id' => $clientId,
             'client_names' => $clientNames,
             'slug' => $slug,
             'album_password' => $albumPassword,
@@ -32,6 +34,7 @@ if (!empty($_GET['id'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $album['client_id'] = !empty($_POST['client_id']) ? (int) $_POST['client_id'] : null;
     $album['client_names'] = trim($_POST['client_names'] ?? '');
     $album['slug'] = trim($_POST['slug'] ?? '');
     $album['album_password'] = trim($_POST['album_password'] ?? '');
@@ -65,14 +68,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     if (empty($errors)) {
         if ($editing) {
-            $update = $conn->prepare('UPDATE albums SET client_names = ?, slug = ?, album_password = ?, s3_folder_path = ? WHERE id = ?');
-            $update->bind_param('ssssi', $album['client_names'], $album['slug'], $album['album_password'], $album['s3_folder_path'], $albumId);
+            if ($album['client_id'] === null) {
+                $update = $conn->prepare('UPDATE albums SET client_id = NULL, client_names = ?, slug = ?, album_password = ?, s3_folder_path = ? WHERE id = ?');
+                $update->bind_param('ssssi', $album['client_names'], $album['slug'], $album['album_password'], $album['s3_folder_path'], $albumId);
+            } else {
+                $update = $conn->prepare('UPDATE albums SET client_id = ?, client_names = ?, slug = ?, album_password = ?, s3_folder_path = ? WHERE id = ?');
+                $update->bind_param('issssi', $album['client_id'], $album['client_names'], $album['slug'], $album['album_password'], $album['s3_folder_path'], $albumId);
+            }
             $update->execute();
             $update->close();
             $message = 'Album updated successfully.';
         } else {
-            $insert = $conn->prepare('INSERT INTO albums (client_names, slug, album_password, s3_folder_path) VALUES (?, ?, ?, ?)');
-            $insert->bind_param('ssss', $album['client_names'], $album['slug'], $album['album_password'], $album['s3_folder_path']);
+            if ($album['client_id'] === null) {
+                $insert = $conn->prepare('INSERT INTO albums (client_names, slug, album_password, s3_folder_path) VALUES (?, ?, ?, ?)');
+                $insert->bind_param('ssss', $album['client_names'], $album['slug'], $album['album_password'], $album['s3_folder_path']);
+            } else {
+                $insert = $conn->prepare('INSERT INTO albums (client_id, client_names, slug, album_password, s3_folder_path) VALUES (?, ?, ?, ?, ?)');
+                $insert->bind_param('issss', $album['client_id'], $album['client_names'], $album['slug'], $album['album_password'], $album['s3_folder_path']);
+            }
             $insert->execute();
             $insert->close();
             $message = 'Album created.';
@@ -124,9 +137,28 @@ function slugify(string $text): string
                     <div class="field">
                         <label class="label">Client Names</label>
                         <div class="control">
-                            <input class="input" type="text" name="client_names" value="<?php echo htmlspecialchars($album['client_names']); ?>" placeholder="John &amp; Jane" required />
+                                <input class="input" type="text" name="client_names" value="<?php echo htmlspecialchars($album['client_names']); ?>" placeholder="John &amp; Jane" required />
                         </div>
                     </div>
+                        <div class="field">
+                            <label class="label">Assign to Client (optional)</label>
+                            <div class="control">
+                                <div class="select">
+                                    <select name="client_id">
+                                        <option value="">-- None --</option>
+                                        <?php
+                                        // fetch clients for selection
+                                        $stmt = $conn->prepare('SELECT id, display_name, username FROM clients ORDER BY created_at DESC');
+                                        $stmt->execute();
+                                        $stmt->bind_result($cid, $dname, $cusername);
+                                        while ($stmt->fetch()): ?>
+                                                <option value="<?php echo (int) $cid; ?>" <?php echo ($album['client_id'] === (int) $cid) ? 'selected' : ''; ?>><?php echo htmlspecialchars($dname) . ($cusername ? ' (' . htmlspecialchars($cusername) . ')' : ''); ?></option>
+                                        <?php endwhile; $stmt->close(); ?>
+                                    </select>
+                                </div>
+                            </div>
+                            <p class="help">Assign this album to a client account so they can login and access multiple galleries.</p>
+                        </div>
                     <div class="field">
                         <label class="label">URL Slug</label>
                         <div class="control">
@@ -156,6 +188,21 @@ function slugify(string $text): string
                         </div>
                     </div>
                 </form>
+                <script>
+                    const clientSelect = document.querySelector('select[name="client_id"]');
+                    const clientNamesInput = document.querySelector('input[name="client_names"]');
+                    if (clientSelect && clientNamesInput) {
+                        clientSelect.addEventListener('change', () => {
+                            const opt = clientSelect.options[clientSelect.selectedIndex];
+                            if (!opt || !opt.value) return;
+                            // Remove any username in parentheses
+                            const display = opt.textContent.replace(/\s*\([^)]*\)\s*$/, '');
+                            if (!clientNamesInput.value || clientNamesInput.value.trim() === '') {
+                                clientNamesInput.value = display;
+                            }
+                        });
+                    }
+                </script>
             </div>
         </section>
     </body>
