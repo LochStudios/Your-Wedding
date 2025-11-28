@@ -97,6 +97,9 @@ CREATE TABLE IF NOT EXISTS admins (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(191) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
+    email VARCHAR(191) DEFAULT NULL,
+    password_reset_token_hash VARCHAR(128) DEFAULT NULL,
+    password_reset_expires_at DATETIME DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     force_password_reset TINYINT(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -121,12 +124,20 @@ SQL;
 
 function ensure_admin_column(mysqli $conn): void
 {
-    $result = $conn->query("SHOW COLUMNS FROM admins LIKE 'force_password_reset'");
-    if (!$result) {
-        return;
-    }
-    if ($result->num_rows === 0) {
-        $conn->query('ALTER TABLE admins ADD COLUMN force_password_reset TINYINT(1) NOT NULL DEFAULT 0');
+    $columnsToEnsure = [
+        'force_password_reset' => "TINYINT(1) NOT NULL DEFAULT 0",
+        'email' => "VARCHAR(191) DEFAULT NULL",
+        'password_reset_token_hash' => "VARCHAR(128) DEFAULT NULL",
+        'password_reset_expires_at' => "DATETIME DEFAULT NULL",
+    ];
+    foreach ($columnsToEnsure as $col => $definition) {
+        $result = $conn->query("SHOW COLUMNS FROM admins LIKE '" . $conn->real_escape_string($col) . "'");
+        if (!$result) {
+            continue;
+        }
+        if ($result->num_rows === 0) {
+            $conn->query('ALTER TABLE admins ADD COLUMN ' . $conn->real_escape_string($col) . ' ' . $definition);
+        }
     }
 }
 

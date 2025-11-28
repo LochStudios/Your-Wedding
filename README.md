@@ -18,6 +18,8 @@ A lightweight, custom PHP gallery for wedding clients. Admins create albums that
 | `index.php` | Marketing landing page with hero, services, pricing, and contact sections. |
 | `style.css` | Custom Bulma overrides and gallery/lightbox styling. |
 | `login.php` | Admin login using bcrypt + sessions. |
+| `forgot_password.php` | Request an admin password reset; generates a short-lived reset token. |
+| `reset_password.php` | Complete a password reset using a token. |
 | `dashboard.php` | Album list with edit/delete controls for authenticated admins and links to update album or password. |
 | `create_album.php` | Create or edit an album (slug auto-generation + password visibility). |
 | `gallery.php` | Client-facing gatekeeper that lists S3 images and displays them in a responsive grid with a modal viewer. |
@@ -28,6 +30,8 @@ A lightweight, custom PHP gallery for wedding clients. Admins create albums that
 2. Ensure the AWS SDK autoloader is reachable at `/home/lochstud/vendors/aws-autoloader.php`.
 3. Point your webroot to this project so `index.php`, `login.php`, etc., are publicly accessible.
 4. Visit `/login.php`, use `admin`/`admin1234` (or update the seeded admin via SQL), then you'll be required to update the admin password before using the dashboard; a change-password link is also available.
+5. If you forget the admin password, visit `/forgot_password.php` to generate a single-use reset token. If the admin account has an `email` set and SMTP is configured, the link will be sent by email; otherwise the link will be shown on the page for convenience.
+6. Share `/gallery.php?slug=<slug>` and the album password with your clients.
 5. Share `/gallery.php?slug=<slug>` and the album password with your clients.
 
 ## Notes
@@ -36,3 +40,4 @@ A lightweight, custom PHP gallery for wedding clients. Admins create albums that
 - Album passwords are stored in plain text so admins can display them when editing.
 - Admin routes show a full-screen **ACCESS DENIED** page for unauthorized requests.
 - Update the default admin password immediately after deployment.
+- To enable email delivery for password reset links, add an `email` against the admin account in the `admins` table and configure SMTP for PHP on your host.

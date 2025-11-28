@@ -7,6 +7,11 @@ if (!empty($_SESSION['admin_logged_in'])) {
 }
 
 $error = '';
+$notice = '';
+if (!empty($_SESSION['admin_flash'])) {
+    $notice = $_SESSION['admin_flash'];
+    unset($_SESSION['admin_flash']);
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
@@ -53,8 +58,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <h1 class="title">Admin Portal</h1>
                         <p>Please enter your credentials.</p>
                         <div class="box">
-                            <?php if ($error): ?>
-                                <div class="notification is-danger"><?php echo htmlspecialchars($error); ?></div>
+                            <?php if ($notice): ?>
+                                    <div class="notification is-info"><?php echo htmlspecialchars($notice); ?></div>
+                                <?php endif; ?>
+                                <?php if ($error): ?>
+                                    <div class="notification is-danger"><?php echo htmlspecialchars($error); ?></div>
                             <?php endif; ?>
                             <form method="post" novalidate>
                                 <div class="field">
@@ -78,6 +86,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <span>Sign In</span>
                                         </button>
                                     </div>
+                                </div>
+                                <div class="has-text-centered">
+                                    <a href="forgot_password.php">Forgot password?</a>
                                 </div>
                             </form>
                         </div>
