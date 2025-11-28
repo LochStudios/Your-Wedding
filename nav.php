@@ -47,9 +47,9 @@ $isClient = !empty($_SESSION['client_logged_in']);
                 <div class="navbar-item">
                     <div class="buttons">
                         <?php if (is_admin_portal_visible()): ?>
-                        <a class="button is-primary" href="login.php">Admin Portal</a>
+                        <a class="button is-primary" href="login.php">Company Portal</a>
                         <?php endif; ?>
-                        <a class="button is-light" href="client_login.php">Client Login</a>
+                        <a class="button is-light" href="client_login.php">Client Portal</a>
                     </div>
                 </div>
             <?php endif; ?>
