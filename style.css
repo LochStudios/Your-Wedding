@@ -1,6 +1,23 @@
 body {
     font-family: 'Helvetica Neue', 'Segoe UI', sans-serif;
     background-color: #f8f9fb;
+    color: #1e1e1e;
+}
+.hero .title,
+.hero .subtitle {
+    color: #fff;
+}
+
+.section {
+    color: #1e1e1e;
+}
+
+.section .title,
+.section .subtitle,
+.section p,
+.section li,
+.section strong {
+    color: inherit;
 }
 
 .hero {
