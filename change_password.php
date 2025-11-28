@@ -29,7 +29,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $update->execute();
         $update->close();
         $_SESSION['requires_password_reset'] = false;
-        $message = 'Password updated. You can now continue to the dashboard.';
+        $_SESSION['admin_flash'] = 'Password updated. You can now continue to the dashboard.';
+        header('Location: dashboard.php');
+        exit;
     }
 }
 ?>
