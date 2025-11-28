@@ -222,6 +222,16 @@ function get_s3_client(): ?S3Client
             $clientConfig['endpoint'] = rtrim($endpoint, '/');
             $clientConfig['use_path_style_endpoint'] = true;
         }
+        // If we have an endpoint, perform a quick DNS resolution check to avoid
+        // the AWS SDK throwing cURL error 6 when an invalid host is configured.
+        if (!empty($clientConfig['endpoint'])) {
+            $host = parse_url($clientConfig['endpoint'], PHP_URL_HOST) ?: $clientConfig['endpoint'];
+            $resolved = @gethostbyname($host);
+            if ($resolved === $host || $resolved === false) {
+                error_log('Configured S3 endpoint does not resolve: ' . $host);
+                return null;
+            }
+        }
         return new S3Client($clientConfig);
     } catch (AwsException $exception) {
         error_log('S3 client initialization failed: ' . $exception->getMessage());
@@ -258,6 +268,48 @@ function get_s3_url_includes_bucket(): bool
 {
     global $config;
     return !empty($config['aws']['s3_url_includes_bucket']);
+}
+
+/**
+ * Diagnose common S3 misconfiguration issues and return a helpful message if one
+ * is found, or null if no obvious problems are detected. This is used to present
+ * actionable errors to the admin instead of raw cURL errors caused by misconfigured
+ * endpoints (e.g. missing region in `linodeobjects.com`).
+ */
+function get_s3_diagnosis(): ?string
+{
+    global $config;
+    $aws = $config['aws'];
+    if (empty($aws['key']) || empty($aws['secret']) || empty($aws['bucket'])) {
+        return 'AWS S3 credentials are not configured (key/secret/bucket).';
+    }
+    // Build a candidate endpoint if configured
+    $endpoint = trim($aws['s3_endpoint'] ?? '');
+    if ($endpoint === '') {
+        $maybe = trim($aws['s3_url'] ?? '');
+        if ($maybe !== '' && !preg_match('/cloudfront|s3\.amazonaws|amazonaws|s3-/', strtolower($maybe))) {
+            $endpoint = $maybe;
+        }
+    }
+    if ($endpoint === '') {
+        // No custom endpoint configured - assume AWS defaults will be used
+        return null;
+    }
+    // Ensure it's a valid URL and extract the host
+    if (!preg_match('#^https?://#', $endpoint)) {
+        $endpoint = 'https://' . $endpoint;
+    }
+    $host = parse_url($endpoint, PHP_URL_HOST) ?: $endpoint;
+    if ($host === '') {
+        return 'Configured S3 endpoint is invalid: ' . htmlspecialchars($endpoint);
+    }
+    // Attempt a DNS resolution check; gethostbyname returns the input string
+    // unchanged if the host can't be resolved.
+    $resolved = @gethostbyname($host);
+    if ($resolved === $host || $resolved === false) {
+        return 'Configured S3 endpoint does not resolve: ' . htmlspecialchars($host) . '. Please verify the endpoint or set the correct region-specific endpoint (for example, use the full cluster URL for Linode Object Storage, not just "linodeobjects.com").';
+    }
+    return null;
 }
 
 function require_admin_session(): void

@@ -42,6 +42,8 @@ A lightweight, custom PHP gallery for wedding clients. Admins create albums that
 ## Optional: Custom S3/CDN base URL
 
 If you'd like to use a CDN or a custom domain (e.g., CloudFront) instead of presigned S3 URLs, set the environment variable `YOUR_WEDDING_AWS_S3_URL` in your secure config file to the base URL for object access, e.g. `https://d123abcd.cloudfront.net` or `https://s3.amazonaws.com/my-bucket`.
+If you use an S3-compatible provider such as Linode Object Storage, prefer the region-specific endpoint (e.g., `https://us-east-1.linodeobjects.com`) rather than the root domain (`linodeobjects.com`) which will not resolve. Example:
+
 When set, the application will construct object URLs using that base URL instead of generating presigned links.
 
 ## Notes

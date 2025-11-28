@@ -239,7 +239,10 @@ if ($accessGranted) {
     $bucket = get_aws_bucket();
     $galleryImages = [];
     $s3Error = '';
-    if ($s3 === null || $bucket === '') {
+    $diagnostic = get_s3_diagnosis();
+    if ($diagnostic !== null) {
+        $s3Error = $diagnostic;
+    } else if ($s3 === null || $bucket === '') {
         $s3Error = 'AWS S3 credentials are not configured.';
     } else {
         $prefix = rtrim($album['s3_folder_path'], '/') . '/';
