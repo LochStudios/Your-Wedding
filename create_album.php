@@ -101,7 +101,7 @@ function slugify(string $text): string
         <title><?php echo $editing ? 'Edit Album' : 'Create Album'; ?> | Your Wedding</title>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-MkM9+dU5CPtz+VRrx7tIw6V0Tp9SHFExi+b0dYV16zJZyrUxjlX+8llc8frlJYe1jKhh598MBXEDqUS1bJXgBA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-        <link rel="stylesheet" href="style.css" />
+        <link rel="stylesheet" href="style.css?v=<?php echo uuidv4(); ?>" />
     </head>
     <body>
         <section class="section">

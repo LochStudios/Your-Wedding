@@ -146,3 +146,8 @@ function require_admin_session(): void
         exit;
     }
 }
+
+function uuidv4(): string
+{
+    return bin2hex(random_bytes(4));
+}
