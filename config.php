@@ -307,6 +307,11 @@ function get_s3_diagnosis(): ?string
     // unchanged if the host can't be resolved.
     $resolved = @gethostbyname($host);
     if ($resolved === $host || $resolved === false) {
+        if (stripos($host, 'linodeobjects.com') !== false && strtolower($host) === 'linodeobjects.com') {
+            $bucket = trim($aws['bucket'] ?? '');
+            $suggest = $bucket !== '' ? htmlspecialchars($bucket) . '.<region>.linodeobjects.com' : '<bucket>.<region>.linodeobjects.com';
+            return 'Configured S3 endpoint does not resolve: ' . htmlspecialchars($host) . '. For Linode Object Storage, use the region-specific host including your bucket: e.g. ' . $suggest . ' (replace <region> with your region identifier, e.g. au-mel-1).';
+        }
         return 'Configured S3 endpoint does not resolve: ' . htmlspecialchars($host) . '. Please verify the endpoint or set the correct region-specific endpoint (for example, use the full cluster URL for Linode Object Storage, not just "linodeobjects.com").';
     }
     return null;
