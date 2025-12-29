@@ -379,11 +379,8 @@ if ($accessGranted) {
             <section class="section full-bleed full-height">
                 <div class="container is-fluid">
                     <div class="box access-card">
-                        <h1 class="title">Access Gallery</h1>
-                        <p class="subtitle">Enter the password for <span class="has-text-weight-bold"><?php echo htmlspecialchars($album['client_display_name'] ?: $album['client_names']); ?></span>.</p>
-                        <?php if (!empty($album['client_id'])): ?>
-                            <p class="help">Or <a href="login.php?type=client&redirect=<?php echo urlencode('gallery.php?slug=' . $slug); ?>">Sign in as the assigned client</a> to view this and other galleries.</p>
-                        <?php endif; ?>
+                        <h1 class="title">Welcome <?php echo htmlspecialchars($album['client_display_name'] ?: $album['client_names']); ?></h1>
+                        <p class="subtitle">Please enter your gallery password<?php if (!empty($album['client_id'])): ?> or <a href="login.php?type=client&redirect=<?php echo urlencode('gallery.php?slug=' . $slug); ?>">sign into your client profile</a><?php endif; ?> to view this and your other galleries.</p>
                         <?php if ($passwordError): ?>
                             <div class="notification is-danger"><?php echo htmlspecialchars($passwordError); ?></div>
                         <?php endif; ?>
