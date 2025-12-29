@@ -516,6 +516,7 @@ function ensure_client_columns(mysqli $conn): void
         'title2' => "VARCHAR(16) DEFAULT 'Mrs'",
         'family_name' => "VARCHAR(255) DEFAULT NULL",
         'display_name' => "VARCHAR(255) NOT NULL",
+        'email' => "VARCHAR(191) DEFAULT NULL",
     ];
     foreach ($columnsToEnsure as $col => $definition) {
         $result = $conn->query("SHOW COLUMNS FROM clients LIKE '" . $conn->real_escape_string($col) . "'");

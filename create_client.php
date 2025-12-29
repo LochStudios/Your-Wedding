@@ -12,16 +12,17 @@ $title1 = 'Mr';
 $title2 = 'Mrs';
 $familyName = '';
 $username = '';
+$email = '';
 $displayName = '';
 
 // Check if editing existing client
 if (!empty($_GET['id'])) {
     $editing = true;
     $clientId = (int) $_GET['id'];
-    $stmt = $conn->prepare('SELECT username, display_name, title1, title2, family_name FROM clients WHERE id = ? LIMIT 1');
+    $stmt = $conn->prepare('SELECT username, email, display_name, title1, title2, family_name FROM clients WHERE id = ? LIMIT 1');
     $stmt->bind_param('i', $clientId);
     $stmt->execute();
-    $stmt->bind_result($username, $displayName, $title1, $title2, $familyName);
+    $stmt->bind_result($username, $email, $displayName, $title1, $title2, $familyName);
     if (!$stmt->fetch()) {
         $errors[] = 'Client not found.';
         $editing = false;
@@ -40,6 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $familyName = trim($_POST['family_name'] ?? '');
     $displayName = trim($_POST['display_name'] ?? '');
     $username = trim($_POST['username'] ?? '') ?: null;
+    $email = trim($_POST['email'] ?? '') ?: null;
     $password = $_POST['password'] ?? '';
     $confirm = $_POST['confirm_password'] ?? '';
     if ($familyName === '') {
@@ -62,21 +64,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($password !== '') {
                 // Update with new password
                 $hash = password_hash($password, PASSWORD_DEFAULT);
-                if ($username === null) {
-                    $stmt = $conn->prepare('UPDATE clients SET username = NULL, display_name = ?, title1 = ?, title2 = ?, family_name = ?, password_hash = ? WHERE id = ?');
+                if ($username === null && $email === null) {
+                    $stmt = $conn->prepare('UPDATE clients SET username = NULL, email = NULL, display_name = ?, title1 = ?, title2 = ?, family_name = ?, password_hash = ? WHERE id = ?');
                     $stmt->bind_param('sssssi', $displayName, $title1, $title2, $familyName, $hash, $clientId);
-                } else {
-                    $stmt = $conn->prepare('UPDATE clients SET username = ?, display_name = ?, title1 = ?, title2 = ?, family_name = ?, password_hash = ? WHERE id = ?');
+                } elseif ($email === null) {
+                    $stmt = $conn->prepare('UPDATE clients SET username = ?, email = NULL, display_name = ?, title1 = ?, title2 = ?, family_name = ?, password_hash = ? WHERE id = ?');
                     $stmt->bind_param('ssssssi', $username, $displayName, $title1, $title2, $familyName, $hash, $clientId);
+                } elseif ($username === null) {
+                    $stmt = $conn->prepare('UPDATE clients SET username = NULL, email = ?, display_name = ?, title1 = ?, title2 = ?, family_name = ?, password_hash = ? WHERE id = ?');
+                    $stmt->bind_param('ssssssi', $email, $displayName, $title1, $title2, $familyName, $hash, $clientId);
+                } else {
+                    $stmt = $conn->prepare('UPDATE clients SET username = ?, email = ?, display_name = ?, title1 = ?, title2 = ?, family_name = ?, password_hash = ? WHERE id = ?');
+                    $stmt->bind_param('sssssssi', $username, $email, $displayName, $title1, $title2, $familyName, $hash, $clientId);
                 }
             } else {
                 // Update without changing password
-                if ($username === null) {
-                    $stmt = $conn->prepare('UPDATE clients SET username = NULL, display_name = ?, title1 = ?, title2 = ?, family_name = ? WHERE id = ?');
+                if ($username === null && $email === null) {
+                    $stmt = $conn->prepare('UPDATE clients SET username = NULL, email = NULL, display_name = ?, title1 = ?, title2 = ?, family_name = ? WHERE id = ?');
                     $stmt->bind_param('ssssi', $displayName, $title1, $title2, $familyName, $clientId);
-                } else {
-                    $stmt = $conn->prepare('UPDATE clients SET username = ?, display_name = ?, title1 = ?, title2 = ?, family_name = ? WHERE id = ?');
+                } elseif ($email === null) {
+                    $stmt = $conn->prepare('UPDATE clients SET username = ?, email = NULL, display_name = ?, title1 = ?, title2 = ?, family_name = ? WHERE id = ?');
                     $stmt->bind_param('sssssi', $username, $displayName, $title1, $title2, $familyName, $clientId);
+                } elseif ($username === null) {
+                    $stmt = $conn->prepare('UPDATE clients SET username = NULL, email = ?, display_name = ?, title1 = ?, title2 = ?, family_name = ? WHERE id = ?');
+                    $stmt->bind_param('sssssi', $email, $displayName, $title1, $title2, $familyName, $clientId);
+                } else {
+                    $stmt = $conn->prepare('UPDATE clients SET username = ?, email = ?, display_name = ?, title1 = ?, title2 = ?, family_name = ? WHERE id = ?');
+                    $stmt->bind_param('ssssssi', $username, $email, $displayName, $title1, $title2, $familyName, $clientId);
                 }
             }
             if (!$stmt->execute()) {
@@ -88,12 +102,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             // Create new client
             $hash = password_hash($password, PASSWORD_DEFAULT);
-            if ($username === null) {
+            if ($username === null && $email === null) {
                 $stmt = $conn->prepare('INSERT INTO clients (display_name, title1, title2, family_name, password_hash) VALUES (?, ?, ?, ?, ?)');
                 $stmt->bind_param('sssss', $displayName, $title1, $title2, $familyName, $hash);
-            } else {
+            } elseif ($email === null) {
                 $stmt = $conn->prepare('INSERT INTO clients (username, display_name, title1, title2, family_name, password_hash) VALUES (?, ?, ?, ?, ?, ?)');
                 $stmt->bind_param('ssssss', $username, $displayName, $title1, $title2, $familyName, $hash);
+            } elseif ($username === null) {
+                $stmt = $conn->prepare('INSERT INTO clients (email, display_name, title1, title2, family_name, password_hash) VALUES (?, ?, ?, ?, ?, ?)');
+                $stmt->bind_param('ssssss', $email, $displayName, $title1, $title2, $familyName, $hash);
+            } else {
+                $stmt = $conn->prepare('INSERT INTO clients (username, email, display_name, title1, title2, family_name, password_hash) VALUES (?, ?, ?, ?, ?, ?, ?)');
+                $stmt->bind_param('sssssss', $username, $email, $displayName, $title1, $title2, $familyName, $hash);
             }
             if (!$stmt->execute()) {
                 $errors[] = 'Unable to create client: ' . $conn->error;
@@ -205,6 +225,13 @@ $stmt->close();
                         <input class="input" type="text" name="username" value="<?php echo htmlspecialchars($username ?? ''); ?>" placeholder="john@example.com" />
                     </div>
                     <p class="help">Optional username/email the client can use to login.</p>
+                </div>
+                <div class="field">
+                    <label class="label">Email Address (optional)</label>
+                    <div class="control">
+                        <input class="input" type="email" name="email" value="<?php echo htmlspecialchars($email ?? ''); ?>" placeholder="john@example.com" />
+                    </div>
+                    <p class="help">Email address for sending analytics reports.</p>
                 </div>
                 <div class="field">
                     <label class="label">Password<?php echo $editing ? ' (leave blank to keep current)' : ''; ?></label>

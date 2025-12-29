@@ -14,7 +14,7 @@ if (!$albumId) {
 }
 
 // Get album and client info
-$stmt = $conn->prepare("SELECT a.client_names, a.slug, a.client_id, c.username FROM albums a LEFT JOIN clients c ON c.id = a.client_id WHERE a.id = ? LIMIT 1");
+$stmt = $conn->prepare("SELECT a.client_names, a.slug, a.client_id, c.email FROM albums a LEFT JOIN clients c ON c.id = a.client_id WHERE a.id = ? LIMIT 1");
 $stmt->bind_param('i', $albumId);
 $stmt->execute();
 $stmt->bind_result($clientNames, $slug, $clientId, $clientEmail);

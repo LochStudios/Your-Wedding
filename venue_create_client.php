@@ -16,16 +16,17 @@ $title1 = 'Mr';
 $title2 = 'Mrs';
 $familyName = '';
 $username = '';
+$email = '';
 $displayName = '';
 
 // Check if editing
 if (!empty($_GET['id'])) {
     $editing = true;
     $clientId = (int) $_GET['id'];
-    $stmt = $conn->prepare('SELECT username, display_name, title1, title2, family_name FROM clients WHERE id = ? AND venue_id = ? LIMIT 1');
+    $stmt = $conn->prepare('SELECT username, email, display_name, title1, title2, family_name FROM clients WHERE id = ? AND venue_id = ? LIMIT 1');
     $stmt->bind_param('ii', $clientId, $venueId);
     $stmt->execute();
-    $stmt->bind_result($username, $displayName, $title1, $title2, $familyName);
+    $stmt->bind_result($username, $email, $displayName, $title1, $title2, $familyName);
     if (!$stmt->fetch()) {
         $errors[] = 'Client not found or access denied.';
         $editing = false;
@@ -44,6 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $familyName = trim($_POST['family_name'] ?? '');
     $displayName = trim($_POST['display_name'] ?? '');
     $username = trim($_POST['username'] ?? '') ?: null;
+    $email = trim($_POST['email'] ?? '') ?: null;
     $password = $_POST['password'] ?? '';
     $confirm = $_POST['confirm_password'] ?? '';
     if ($familyName === '') {
@@ -62,21 +64,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($editing) {
             if ($password !== '') {
                 $hash = password_hash($password, PASSWORD_DEFAULT);
-                if ($username === null) {
-                    $stmt = $conn->prepare('UPDATE clients SET username = NULL, display_name = ?, title1 = ?, title2 = ?, family_name = ?, password_hash = ? WHERE id = ? AND venue_id = ?');
-                    $stmt->bind_param('sssssii', $displayName, $title1, $title2, $familyName, $hash, $clientId, $venueId);
-                } else {
-                    $stmt = $conn->prepare('UPDATE clients SET username = ?, display_name = ?, title1 = ?, title2 = ?, family_name = ?, password_hash = ? WHERE id = ? AND venue_id = ?');
-                    $stmt->bind_param('ssssssii', $username, $displayName, $title1, $title2, $familyName, $hash, $clientId, $venueId);
-                }
+                $stmt = $conn->prepare('UPDATE clients SET username = ?, email = ?, display_name = ?, title1 = ?, title2 = ?, family_name = ?, password_hash = ? WHERE id = ? AND venue_id = ?');
+                $stmt->bind_param('sssssssii', $username, $email, $displayName, $title1, $title2, $familyName, $hash, $clientId, $venueId);
             } else {
-                if ($username === null) {
-                    $stmt = $conn->prepare('UPDATE clients SET username = NULL, display_name = ?, title1 = ?, title2 = ?, family_name = ? WHERE id = ? AND venue_id = ?');
-                    $stmt->bind_param('ssssii', $displayName, $title1, $title2, $familyName, $clientId, $venueId);
-                } else {
-                    $stmt = $conn->prepare('UPDATE clients SET username = ?, display_name = ?, title1 = ?, title2 = ?, family_name = ? WHERE id = ? AND venue_id = ?');
-                    $stmt->bind_param('sssssii', $username, $displayName, $title1, $title2, $familyName, $clientId, $venueId);
-                }
+                $stmt = $conn->prepare('UPDATE clients SET username = ?, email = ?, display_name = ?, title1 = ?, title2 = ?, family_name = ? WHERE id = ? AND venue_id = ?');
+                $stmt->bind_param('ssssssii', $username, $email, $displayName, $title1, $title2, $familyName, $clientId, $venueId);
             }
             if (!$stmt->execute()) {
                 $errors[] = 'Unable to update client: ' . $conn->error;
@@ -86,13 +78,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->close();
         } else {
             $hash = password_hash($password, PASSWORD_DEFAULT);
-            if ($username === null) {
-                $stmt = $conn->prepare('INSERT INTO clients (venue_id, display_name, title1, title2, family_name, password_hash) VALUES (?, ?, ?, ?, ?, ?)');
-                $stmt->bind_param('isssss', $venueId, $displayName, $title1, $title2, $familyName, $hash);
-            } else {
-                $stmt = $conn->prepare('INSERT INTO clients (venue_id, username, display_name, title1, title2, family_name, password_hash) VALUES (?, ?, ?, ?, ?, ?, ?)');
-                $stmt->bind_param('issssss', $venueId, $username, $displayName, $title1, $title2, $familyName, $hash);
-            }
+            $stmt = $conn->prepare('INSERT INTO clients (venue_id, username, email, display_name, title1, title2, family_name, password_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+            $stmt->bind_param('isssssss', $venueId, $username, $email, $displayName, $title1, $title2, $familyName, $hash);
             if (!$stmt->execute()) {
                 $errors[] = 'Unable to create client: ' . $conn->error;
             } else {
@@ -192,6 +179,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="control">
                                 <input class="input" type="text" name="username" value="<?php echo htmlspecialchars($username ?? ''); ?>" placeholder="client@example.com" />
                             </div>
+                        </div>
+                        <div class="field">
+                            <label class="label">Email Address (optional)</label>
+                            <div class="control">
+                                <input class="input" type="email" name="email" value="<?php echo htmlspecialchars($email ?? ''); ?>" placeholder="client@example.com" />
+                            </div>
+                            <p class="help">Email address for sending analytics reports.</p>
                         </div>
                         <div class="field">
                             <label class="label">Password<?php echo $editing ? ' (leave blank to keep current)' : ''; ?></label>
