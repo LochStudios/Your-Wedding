@@ -22,6 +22,7 @@ $isClient = !empty($_SESSION['client_logged_in']);
                 <a class="navbar-item" href="dashboard.php">Dashboard</a>
                 <a class="navbar-item" href="create_album.php">Create Album</a>
                 <a class="navbar-item" href="create_client.php">Create Client</a>
+                <a class="navbar-item" href="admin_upload.php">Upload Files</a>
                 <a class="navbar-item" href="manage_venues.php">Manage Venues</a>
                 <a class="navbar-item" href="analytics.php">Analytics</a>
                 <a class="navbar-item" href="contact_requests.php">Contact Requests</a>
