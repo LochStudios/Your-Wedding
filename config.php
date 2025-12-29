@@ -149,6 +149,15 @@ SQL;
     } catch (mysqli_sql_exception $e) {
         // ignore
     }
+    // Ensure slug has UNIQUE constraint (critical for site-wide URL routing)
+    try {
+        $indexCheck = $conn->query("SHOW INDEXES FROM albums WHERE Key_name = 'slug' AND Non_unique = 0");
+        if ($indexCheck && $indexCheck->num_rows === 0) {
+            $conn->query('ALTER TABLE albums ADD UNIQUE INDEX slug (slug)');
+        }
+    } catch (mysqli_sql_exception $e) {
+        // Index may already exist or column may already be unique
+    }
     ensure_admin_column($conn);
     ensure_default_admin($conn);
 }

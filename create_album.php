@@ -57,12 +57,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Slug cannot be empty.';
     }
     if (empty($errors)) {
+        // Ensure slug is globally unique across the entire site
         $checkStmt = $conn->prepare('SELECT id FROM albums WHERE slug = ? LIMIT 1');
         $checkStmt->bind_param('s', $album['slug']);
         $checkStmt->execute();
         $checkStmt->bind_result($existingId);
         if ($checkStmt->fetch() && (!$editing || $existingId !== $albumId)) {
-            $errors[] = 'Slug already exists.';
+            $errors[] = 'Slug "' . htmlspecialchars($album['slug']) . '" already exists. Each album must have a unique slug for site-wide access.';
         }
         $checkStmt->close();
     }
