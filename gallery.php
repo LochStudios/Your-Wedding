@@ -13,7 +13,22 @@ if ($slug === '') {
             $clientLoginError = 'Both fields are required.';
         } else {
             $conn = get_db_connection();
-            // Support numeric ID or username/email input
+            // First try album slug authentication
+            $slugStmt = $conn->prepare('SELECT slug, client_id, album_password FROM albums WHERE slug = ? LIMIT 1');
+            $slugStmt->bind_param('s', $clientIdInput);
+            $slugStmt->execute();
+            $slugStmt->bind_result($foundSlug, $albumClientId, $albumPassword);
+            if ($slugStmt->fetch() && $password === $albumPassword) {
+                $_SESSION['album_access'][$foundSlug] = true;
+                if ($albumClientId !== null) {
+                    $_SESSION['client_logged_in'] = (int) $albumClientId;
+                }
+                $slugStmt->close();
+                header('Location: gallery.php?slug=' . urlencode($foundSlug));
+                exit;
+            }
+            $slugStmt->close();
+            // Fall back to client ID or username authentication
             if (is_numeric($clientIdInput)) {
                 $stmt = $conn->prepare('SELECT id, password_hash FROM clients WHERE id = ? LIMIT 1');
                 $cid = (int) $clientIdInput;
@@ -30,7 +45,7 @@ if ($slug === '') {
                 exit;
             }
             $stmt->close();
-            $clientLoginError = 'Invalid client ID or password.';
+            $clientLoginError = 'Invalid credentials.';
         }
     }
     // Render the inline client login UI
@@ -60,9 +75,9 @@ if ($slug === '') {
                                 <?php endif; ?>
                                 <form method="post">
                                     <div class="field">
-                                        <label class="label">Client ID or Username</label>
+                                        <label class="label">Client ID, Username, or Gallery Slug</label>
                                         <div class="control">
-                                            <input class="input" type="text" name="client_id" placeholder="Client ID or username" required />
+                                            <input class="input" type="text" name="client_id" placeholder="Client ID, username, or gallery slug" required />
                                         </div>
                                     </div>
                                     <div class="field">
@@ -115,6 +130,22 @@ if ($album === null) {
             $password = $_POST['client_password'] ?? '';
             if ($clientIdInput !== '' && $password !== '') {
                 $conn = get_db_connection();
+                // First try album slug authentication
+                $slugStmt = $conn->prepare('SELECT slug, client_id, album_password FROM albums WHERE slug = ? LIMIT 1');
+                $slugStmt->bind_param('s', $clientIdInput);
+                $slugStmt->execute();
+                $slugStmt->bind_result($foundSlug, $albumClientId, $albumPassword);
+                if ($slugStmt->fetch() && $password === $albumPassword) {
+                    $_SESSION['album_access'][$foundSlug] = true;
+                    if ($albumClientId !== null) {
+                        $_SESSION['client_logged_in'] = (int) $albumClientId;
+                    }
+                    $slugStmt->close();
+                    header('Location: gallery.php?slug=' . urlencode($foundSlug));
+                    exit;
+                }
+                $slugStmt->close();
+                // Fall back to client ID or username authentication
                 if (is_numeric($clientIdInput)) {
                     $stmt = $conn->prepare('SELECT id, password_hash FROM clients WHERE id = ? LIMIT 1');
                     $cid = (int) $clientIdInput;
@@ -131,7 +162,7 @@ if ($album === null) {
                     exit;
                 }
                 $stmt->close();
-                $clientLoginError = 'Invalid client ID or password.';
+                $clientLoginError = 'Invalid credentials.';
             } else {
                 $clientLoginError = 'Both fields are required.';
             }
@@ -183,9 +214,9 @@ if ($album === null) {
                                 <p class="subtitle">Or, sign in with your Client ID to access all your galleries:</p>
                                 <form method="post">
                                     <div class="field">
-                                        <label class="label">Client ID or Username</label>
+                                        <label class="label">Client ID, Username, or Gallery Slug</label>
                                         <div class="control">
-                                            <input class="input" type="text" name="client_id" placeholder="Client ID or username" />
+                                            <input class="input" type="text" name="client_id" placeholder="Client ID, username, or gallery slug" />
                                         </div>
                                     </div>
                                     <div class="field">
