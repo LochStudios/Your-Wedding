@@ -59,14 +59,14 @@ require_once __DIR__ . '/config.php';
                         <div class="box">
                             <span class="icon has-text-primary"><i class="fas fa-shield-halved fa-2x"></i></span>
                             <h3 class="title is-5">Private Galleries</h3>
-                            <p>Every gallery is handcrafted by LochStudios with password protection and thoughtful slugs.</p>
+                            <p>Every gallery is handcrafted by LochStudios with password protection and personalized links.</p>
                         </div>
                     </div>
                     <div class="column">
                         <div class="box">
                             <span class="icon has-text-primary"><i class="fas fa-cloud-download-alt fa-2x"></i></span>
                             <h3 class="title is-5">Secure Hosting</h3>
-                            <p>We keep the originals safe and deliver them to you through this responsive viewer.</p>
+                            <p>Your photos are safely stored and easy to view on any device, anytime you want.</p>
                         </div>
                     </div>
                     <div class="column">
@@ -90,11 +90,11 @@ require_once __DIR__ . '/config.php';
                             </header>
                             <div class="card-content">
                                 <p class="title is-3">$2,499</p>
-                                <p>Full-day coverage gallery with a curated delivery experience.</p>
+                                <p>Your wedding photos in a private online gallery.</p>
                                 <ul>
-                                    <li>LochStudios curated password delivery</li>
-                                    <li>Gallery-friendly lightbox</li>
-                                    <li>Responsive tech support</li>
+                                    <li>Password-protected gallery</li>
+                                    <li>Easy photo viewing and downloads</li>
+                                    <li>Help when you need it</li>
                                 </ul>
                             </div>
                         </div>
@@ -106,11 +106,11 @@ require_once __DIR__ . '/config.php';
                             </header>
                             <div class="card-content">
                                 <p class="title is-3">$3,499</p>
-                                <p>Multi-gallery package with expedited delivery and extra polish.</p>
+                                <p>Multiple galleries with faster delivery and personal touches.</p>
                                 <ul>
-                                    <li>Tailored slugs, passwords & messaging</li>
-                                    <li>Priority LochStudios support</li>
-                                    <li>Monthly sharing summaries</li>
+                                    <li>Custom gallery links and passwords</li>
+                                    <li>Priority support from LochStudios</li>
+                                    <li>Monthly reports on who's viewing</li>
                                 </ul>
                             </div>
                         </div>
@@ -122,11 +122,11 @@ require_once __DIR__ . '/config.php';
                             </header>
                             <div class="card-content">
                                 <p class="title is-3">Custom</p>
-                                <p>Custom partnerships for venues, teams, or large wedding programs.</p>
+                                <p>For wedding venues or businesses with multiple events.</p>
                                 <ul>
-                                    <li>Dedicated LochStudios gallery manager</li>
-                                    <li>Automated gallery workflows</li>
-                                    <li>Team-level sharing controls</li>
+                                    <li>Your own dedicated contact person</li>
+                                    <li>Galleries set up automatically</li>
+                                    <li>Control who can access what</li>
                                 </ul>
                             </div>
                         </div>
