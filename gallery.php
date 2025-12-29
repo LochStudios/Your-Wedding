@@ -4,6 +4,12 @@ require_once __DIR__ . '/config.php';
 $slug = trim($_GET['slug'] ?? '');
 
 // If accessed without a slug, present an inline client login that logs a user in by Client ID and password
+// However, if a client is already logged in, redirect them to their dashboard instead
+if ($slug === '' && !empty($_SESSION['client_logged_in'])) {
+    header('Location: dashboard.php');
+    exit;
+}
+
 $clientLoginError = '';
 if ($slug === '') {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {

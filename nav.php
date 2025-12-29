@@ -25,8 +25,9 @@ $isClient = !empty($_SESSION['client_logged_in']);
             <?php endif; ?>
             <?php if ($isClient): ?>
                 <a class="navbar-item" href="dashboard.php">My Galleries</a>
+            <?php else: ?>
+                <a class="navbar-item" href="gallery.php">Find Gallery</a>
             <?php endif; ?>
-            <a class="navbar-item" href="gallery.php">Find Gallery</a>
         </div>
         <div class="navbar-end">
             <?php if ($isAdmin): ?>
