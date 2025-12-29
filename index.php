@@ -1,5 +1,65 @@
 <?php
 require_once __DIR__ . '/config.php';
+
+$contactSuccess = false;
+$contactError = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['contact_form'])) {
+    $studioName = trim($_POST['studio_name'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $message = trim($_POST['message'] ?? '');
+    if (empty($studioName) || empty($email) || empty($message)) {
+        $contactError = 'All fields are required.';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $contactError = 'Please enter a valid email address.';
+    } else {
+        global $config;
+        $mailConfig = $config['mail'];
+        if (!empty($mailConfig['host']) && !empty($mailConfig['username']) && !empty($mailConfig['password'])) {
+            require_once '/home/lochstud/vendors/PHPMailer/src/Exception.php';
+            require_once '/home/lochstud/vendors/PHPMailer/src/PHPMailer.php';
+            require_once '/home/lochstud/vendors/PHPMailer/src/SMTP.php';
+            $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+            try {
+                // Server settings
+                $mail->isSMTP();
+                $mail->Host = $mailConfig['host'];
+                $mail->SMTPAuth = true;
+                $mail->Username = $mailConfig['username'];
+                $mail->Password = $mailConfig['password'];
+                $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
+                $mail->Port = 465;
+                // Recipients
+                $mail->setFrom($mailConfig['from_email'], $mailConfig['from_name']);
+                $mail->addAddress('media@lochstudios.com', 'LochStudios Media');
+                $mail->addReplyTo($email, $studioName);
+                // Content
+                $mail->isHTML(false);
+                $mail->Subject = "Contact Form: {$studioName}";
+                $mail->Body = "Contact Form Submission\n";
+                $mail->Body .= "========================\n\n";
+                $mail->Body .= "Studio Name: {$studioName}\n";
+                $mail->Body .= "Email: {$email}\n\n";
+                $mail->Body .= "Message:\n";
+                $mail->Body .= $message . "\n";
+                
+                $mail->send();
+                $contactSuccess = true;
+                
+                // Save to database
+                $conn = get_db_connection();
+                $stmt = $conn->prepare('INSERT INTO contact_requests (studio_name, email, message) VALUES (?, ?, ?)');
+                $stmt->bind_param('sss', $studioName, $email, $message);
+                $stmt->execute();
+                $stmt->close();
+            } catch (Exception $e) {
+                $contactError = "Unable to send message. Please try again later.";
+            }
+        } else {
+            $contactError = "Mail service is currently unavailable.";
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -159,28 +219,39 @@ require_once __DIR__ . '/config.php';
                     </div>
                     <div class="column">
                         <div class="box">
-                            <form>
+                            <?php if ($contactSuccess): ?>
+                                <div class="notification is-success">
+                                    Thank you! Your message has been sent successfully.
+                                </div>
+                            <?php endif; ?>
+                            <?php if ($contactError): ?>
+                                <div class="notification is-danger">
+                                    <?php echo htmlspecialchars($contactError); ?>
+                                </div>
+                            <?php endif; ?>
+                            <form method="post">
+                                <input type="hidden" name="contact_form" value="1" />
                                 <div class="field">
                                     <label class="label">Studio Name</label>
                                     <div class="control">
-                                        <input class="input" type="text" placeholder="Your Team" />
+                                        <input class="input" type="text" name="studio_name" placeholder="Your Team" required />
                                     </div>
                                 </div>
                                 <div class="field">
                                     <label class="label">Email</label>
                                     <div class="control">
-                                        <input class="input" type="email" placeholder="you@email.com" />
+                                        <input class="input" type="email" name="email" placeholder="you@email.com" required />
                                     </div>
                                 </div>
                                 <div class="field">
                                     <label class="label">Message</label>
                                     <div class="control">
-                                        <textarea class="textarea" placeholder="Tell us about your next wedding project"></textarea>
+                                        <textarea class="textarea" name="message" placeholder="Tell us about your next wedding project" required></textarea>
                                     </div>
                                 </div>
                                 <div class="field">
                                     <div class="control">
-                                        <button class="button is-link">Send Request</button>
+                                        <button class="button is-link" type="submit">Send Request</button>
                                     </div>
                                 </div>
                             </form>

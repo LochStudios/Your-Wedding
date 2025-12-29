@@ -92,8 +92,8 @@ if (!empty($clientEmail) && filter_var($clientEmail, FILTER_VALIDATE_EMAIL)) {
             $mail->SMTPAuth = true;
             $mail->Username = $mailConfig['username'];
             $mail->Password = $mailConfig['password'];
-            $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port = 587;
+            $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
+            $mail->Port = 465;
             // Recipients
             $mail->setFrom($mailConfig['from_email'], $mailConfig['from_name']);
             $mail->addAddress($clientEmail, $clientNames);

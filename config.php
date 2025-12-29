@@ -157,7 +157,18 @@ CREATE TABLE IF NOT EXISTS analytics (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 SQL;
     $conn->query($analyticsSql);
-    
+    // Create contact requests table for storing contact form submissions
+    $contactSql = <<<'SQL'
+CREATE TABLE IF NOT EXISTS contact_requests (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    studio_name VARCHAR(255) NOT NULL,
+    email VARCHAR(191) NOT NULL,
+    message TEXT NOT NULL,
+    submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_submitted (submitted_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+SQL;
+    $conn->query($contactSql);
     // Create clients table for multi-gallery support (associates albums to clients)
     $clientSql = <<<'SQL'
 CREATE TABLE IF NOT EXISTS clients (
