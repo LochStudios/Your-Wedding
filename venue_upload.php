@@ -61,7 +61,7 @@ if (empty($venuePrefix)) {
 
 // Get venue's galleries for dropdown
 $venueGalleries = [];
-$stmt = $conn->prepare('SELECT id, album_name, s3_folder FROM albums WHERE venue_id = ? ORDER BY album_name');
+$stmt = $conn->prepare('SELECT id, client_names, s3_folder_path FROM albums WHERE venue_id = ? ORDER BY client_names');
 $stmt->bind_param('i', $venueId);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -80,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['photos'])) {
         $errors[] = 'Please select a gallery.';
     } else {
         // Verify venue owns this gallery
-        $stmt = $conn->prepare('SELECT s3_folder FROM albums WHERE id = ? AND venue_id = ? LIMIT 1');
+        $stmt = $conn->prepare('SELECT s3_folder_path FROM albums WHERE id = ? AND venue_id = ? LIMIT 1');
         $stmt->bind_param('ii', $albumId, $venueId);
         $stmt->execute();
         $stmt->bind_result($s3Folder);
@@ -175,7 +175,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['photos'])) {
                                         <option value="">-- Choose a gallery --</option>
                                         <?php foreach ($venueGalleries as $vg): ?>
                                             <option value="<?php echo (int) $vg['id']; ?>">
-                                                <?php echo htmlspecialchars($vg['album_name']); ?>
+                                                <?php echo htmlspecialchars($vg['client_names']); ?>
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
