@@ -74,9 +74,20 @@ $emailBody .= "Visit your gallery at: " . (isset($_SERVER['HTTPS']) && $_SERVER[
 
 $subject = "Monthly Gallery Report: {$clientNames}";
 
+// Check if manual email was provided via POST
+$manualEmail = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['manual_email'])) {
+    $manualEmail = trim($_POST['manual_email']);
+    if (filter_var($manualEmail, FILTER_VALIDATE_EMAIL)) {
+        $clientEmail = $manualEmail;
+    }
+}
+
 // Try to send email if client has email
 $sent = false;
 $errorMessage = '';
+$showEmailForm = false;
+
 if (!empty($clientEmail) && filter_var($clientEmail, FILTER_VALIDATE_EMAIL)) {
     global $config;
     $mailConfig = $config['mail'];
@@ -110,12 +121,17 @@ if (!empty($clientEmail) && filter_var($clientEmail, FILTER_VALIDATE_EMAIL)) {
     } else {
         $errorMessage = "Mail configuration incomplete.";
     }
+} else {
+    $showEmailForm = true;
+    $errorMessage = "No email address on file.";
 }
 
 if ($sent) {
     $_SESSION['admin_flash'] = "Report sent successfully to {$clientEmail}";
 } else {
-    $_SESSION['admin_flash'] = "Could not send email. " . ($errorMessage ?: "Client email: " . ($clientEmail ?: 'not set')) . ". Report generated below.";
+    if (!$showEmailForm) {
+        $_SESSION['admin_flash'] = "Could not send email. " . ($errorMessage ?: "Client email: " . ($clientEmail ?: 'not set'));
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -138,8 +154,36 @@ if ($sent) {
                     <div class="notification is-success">
                         Report successfully sent to <?php echo htmlspecialchars($clientEmail); ?>
                     </div>
-                <?php else: ?>
+                <?php elseif ($showEmailForm): ?>
                     <div class="notification is-warning">
+                        <strong>No Email Address Found</strong><br>
+                        This client doesn't have an email address on file. Enter an email address below to send the report.
+                    </div>
+                    <div class="box">
+                        <h2 class="title is-5">Send Report via Email</h2>
+                        <form method="post">
+                            <div class="field">
+                                <label class="label">Email Address</label>
+                                <div class="control">
+                                    <input class="input" type="email" name="manual_email" placeholder="client@example.com" required autofocus />
+                                </div>
+                                <p class="help">Enter the client's email address to send this report.</p>
+                            </div>
+                            <div class="field is-grouped">
+                                <div class="control">
+                                    <button class="button is-link" type="submit">
+                                        <span class="icon"><i class="fas fa-paper-plane"></i></span>
+                                        <span>Send Report</span>
+                                    </button>
+                                </div>
+                                <div class="control">
+                                    <a href="analytics.php?album_id=<?php echo $albumId; ?>&date_from=<?php echo urlencode($dateFrom); ?>&date_to=<?php echo urlencode($dateTo); ?>" class="button is-light">Cancel</a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                <?php else: ?>
+                    <div class="notification is-danger">
                         <?php echo htmlspecialchars($_SESSION['admin_flash'] ?? 'Unable to send email.'); ?>
                     </div>
                 <?php endif; ?>
