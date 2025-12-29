@@ -104,15 +104,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['photos'])) {
                 $originalName = $_FILES['photos']['name'][$i];
                 $fileSize = $_FILES['photos']['size'][$i];
                 $mimeType = $_FILES['photos']['type'][$i];
-                // Validate image
-                $allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif'];
+                // Validate image and video
+                $allowedMimes = [
+                    'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif',
+                    'video/mp4', 'video/mpeg', 'video/quicktime', 'video/x-msvideo', 'video/webm', 'video/x-matroska'
+                ];
                 if (!in_array(strtolower($mimeType), $allowedMimes)) {
                     $failed++;
                     continue;
                 }
                 // Generate unique filename
                 $ext = pathinfo($originalName, PATHINFO_EXTENSION);
-                $uniqueName = uniqid('photo_', true) . '.' . $ext;
+                $isVideo = str_starts_with(strtolower($mimeType), 'video/');
+                $prefix = $isVideo ? 'video_' : 'photo_';
+                $uniqueName = uniqid($prefix, true) . '.' . $ext;
                 // Build S3 path: venuePrefix/year/album-folder/filename
                 $currentYear = date('Y');
                 $venueFolderPath = rtrim($venuePrefix, '/') . '/' . $currentYear . '/' . rtrim($s3Folder, '/');
@@ -131,7 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['photos'])) {
                     error_log('S3 upload failed for ' . $originalName . ': ' . $e->getMessage());
                 }
             }
-            $uploadResult = sprintf('%d photo(s) uploaded successfully. %d failed.', $uploaded, $failed);
+            $uploadResult = sprintf('%d file(s) uploaded successfully. %d failed.', $uploaded, $failed);
         }
     }
 }
@@ -151,8 +156,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['photos'])) {
         <?php include_once __DIR__ . '/venue_nav.php'; ?>
         <section class="section full-bleed full-height">
             <div class="container is-fluid">
-                <h1 class="title">Upload Photos</h1>
-                <p class="subtitle">Add photos to your galleries</p>
+                <h1 class="title">Upload Photos & Videos</h1>
+                <p class="subtitle">Add photos and videos to your galleries</p>
                 <?php if ($uploadResult): ?>
                     <div class="notification is-success"><?php echo htmlspecialchars($uploadResult); ?></div>
                 <?php endif; ?>
@@ -183,12 +188,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['photos'])) {
                             </div>
                         </div>
                         <div class="field">
-                            <label class="label">Choose Photos</label>
+                            <label class="label">Choose Photos & Videos</label>
                             <div class="drop-zone" id="dropZone">
                                 <i class="fas fa-cloud-upload-alt fa-3x" style="color: #3273dc;"></i>
-                                <p class="mt-3"><strong>Drag and drop photos here</strong></p>
+                                <p class="mt-3"><strong>Drag and drop photos & videos here</strong></p>
                                 <p class="has-text-grey">or click to browse</p>
-                                <input type="file" name="photos[]" id="fileInput" multiple accept="image/*" style="display: none;" />
+                                <input type="file" name="photos[]" id="fileInput" multiple accept="image/*,video/*" style="display: none;" />
                             </div>
                         </div>
                         <div id="previewContainer" class="preview-grid"></div>
@@ -200,7 +205,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['photos'])) {
                             <div class="control">
                                 <button class="button is-link" type="submit" id="uploadBtn" disabled>
                                     <span class="icon"><i class="fas fa-upload"></i></span>
-                                    <span>Upload Photos</span>
+                                    <span>Upload Files</span>
                                 </button>
                             </div>
                             <div class="control">
@@ -235,7 +240,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['photos'])) {
             dropZone.addEventListener('drop', (e) => {
                 e.preventDefault();
                 dropZone.classList.remove('dragover');
-                const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+                const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/') || f.type.startsWith('video/'));
                 addFiles(files);
             });
             // File input change
@@ -258,24 +263,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['photos'])) {
                         return; // Skip duplicates
                     }
                     selectedFiles.push(file);
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const div = document.createElement('div');
-                        div.className = 'preview-item';
-                        div.innerHTML = `
-                            <img src="${e.target.result}" alt="${file.name}" />
-                            <button type="button" class="remove-btn" data-name="${file.name}" data-size="${file.size}">×</button>
-                        `;
+                    const div = document.createElement('div');
+                    div.className = 'preview-item';
+                    
+                    if (file.type.startsWith('video/')) {
+                        // Video preview
+                        const video = document.createElement('video');
+                        video.src = URL.createObjectURL(file);
+                        video.style.width = '100%';
+                        video.style.height = '100%';
+                        video.style.objectFit = 'cover';
+                        div.appendChild(video);
+                        const removeBtn = document.createElement('button');
+                        removeBtn.type = 'button';
+                        removeBtn.className = 'remove-btn';
+                        removeBtn.dataset.name = file.name;
+                        removeBtn.dataset.size = file.size;
+                        removeBtn.textContent = '×';
+                        div.appendChild(removeBtn);
                         previewContainer.appendChild(div);
-                        div.querySelector('.remove-btn').addEventListener('click', function() {
+                        removeBtn.addEventListener('click', function() {
                             const name = this.dataset.name;
                             const size = parseInt(this.dataset.size);
                             selectedFiles = selectedFiles.filter(f => !(f.name === name && f.size === size));
                             div.remove();
                             updateButtons();
                         });
-                    };
-                    reader.readAsDataURL(file);
+                    } else {
+                        // Image preview
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            div.innerHTML = `
+                                <img src="${e.target.result}" alt="${file.name}" />
+                                <button type="button" class="remove-btn" data-name="${file.name}" data-size="${file.size}">×</button>
+                            `;
+                                div.querySelector('.remove-btn').addEventListener('click', function() {
+                                const name = this.dataset.name;
+                                const size = parseInt(this.dataset.size);
+                                selectedFiles = selectedFiles.filter(f => !(f.name === name && f.size === size));
+                                div.remove();
+                                updateButtons();
+                            });
+                        };
+                        reader.readAsDataURL(file);
+                    }
                 });
                 updateButtons();
             }

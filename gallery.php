@@ -297,6 +297,7 @@ if ($accessGranted) {
         try {
             $params = ['Bucket' => $bucket, 'Prefix' => ltrim($prefix, '/')];
             $imageExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'tif', 'tiff', 'bmp', 'heic', 'heif', 'svg', 'avif'];
+            $videoExtensions = ['mp4', 'mov', 'avi', 'webm', 'mkv', 'mpeg', 'mpg'];
             do {
                 $result = $s3->listObjectsV2($params);
                 $signEnabled = get_s3_signing_enabled();
@@ -305,7 +306,12 @@ if ($accessGranted) {
                         continue;
                     }
                     $extension = strtolower(pathinfo($object['Key'], PATHINFO_EXTENSION));
-                    if ($extension === '' || !in_array($extension, $imageExtensions, true)) {
+                    if ($extension === '') {
+                        continue;
+                    }
+                    $isVideo = in_array($extension, $videoExtensions, true);
+                    $isImage = in_array($extension, $imageExtensions, true);
+                    if (!$isVideo && !$isImage) {
                         continue;
                     }
                     // If an S3 base URL is configured (e.g. CloudFront/CNAME), build direct
@@ -316,7 +322,7 @@ if ($accessGranted) {
                         try {
                             $cmd = $s3->getCommand('GetObject', ['Bucket' => get_aws_bucket(), 'Key' => $object['Key']]);
                             $request = $s3->createPresignedRequest($cmd, '+15 minutes');
-                            $galleryImages[] = (string) $request->getUri();
+                            $galleryImages[] = ['url' => (string) $request->getUri(), 'type' => $isVideo ? 'video' : 'image'];
                             continue;
                         } catch (\Aws\Exception\AwsException $ex) {
                             error_log('Failed to create presigned URL: ' . $ex->getMessage());
@@ -327,9 +333,9 @@ if ($accessGranted) {
                         $bucket = get_aws_bucket();
                         $baseContainsBucket = stripos($s3BaseUrl, '/' . $bucket) !== false || stripos($s3BaseUrl, $bucket . '/') !== false || stripos($s3BaseUrl, $bucket) !== false;
                         if ($baseContainsBucket || get_s3_url_includes_bucket()) {
-                            $galleryImages[] = $s3BaseUrl . '/' . ltrim($object['Key'], '/');
+                            $galleryImages[] = ['url' => $s3BaseUrl . '/' . ltrim($object['Key'], '/'), 'type' => $isVideo ? 'video' : 'image'];
                         } else {
-                            $galleryImages[] = $s3BaseUrl . '/' . $bucket . '/' . ltrim($object['Key'], '/');
+                            $galleryImages[] = ['url' => $s3BaseUrl . '/' . $bucket . '/' . ltrim($object['Key'], '/'), 'type' => $isVideo ? 'video' : 'image'];
                         }
                     } else {
                         // If we couldn't sign, but have a valid S3 client, try create presigned URL again (best effort)
@@ -337,14 +343,14 @@ if ($accessGranted) {
                             try {
                                 $cmd = $s3->getCommand('GetObject', ['Bucket' => $bucket, 'Key' => $object['Key']]);
                                 $request = $s3->createPresignedRequest($cmd, '+15 minutes');
-                                $galleryImages[] = (string) $request->getUri();
+                                $galleryImages[] = ['url' => (string) $request->getUri(), 'type' => $isVideo ? 'video' : 'image'];
                                 continue;
                             } catch (\Aws\Exception\AwsException $ex) {
                                 error_log('Fallback presigned URL failed: ' . $ex->getMessage());
                             }
                         }
                         // No signing available and no base URL to use — add null placeholder, not local path
-                        $galleryImages[] = null;
+                        $galleryImages[] = ['url' => null, 'type' => $isVideo ? 'video' : 'image'];
                     }
                 }
                 $params['ContinuationToken'] = $result['NextContinuationToken'] ?? null;
@@ -433,15 +439,19 @@ if ($accessGranted) {
                         <div class="notification is-info">No images found in this folder yet.</div>
                     <?php else: ?>
                         <div class="columns is-multiline gallery-grid">
-                            <?php foreach ($galleryImages as $imageUrl): ?>
+                            <?php foreach ($galleryImages as $media): ?>
+                                <?php if (empty($media['url'])) continue; ?>
                                 <div class="column is-one-third">
                                     <div class="card">
                                         <div class="card-image">
                                             <figure class="image is-4by3">
-                                                <?php if (!empty($imageUrl)): ?>
-                                                    <img src="<?php echo htmlspecialchars($imageUrl); ?>" data-full="<?php echo htmlspecialchars($imageUrl); ?>" alt="Gallery photo" />
+                                                <?php if ($media['type'] === 'video'): ?>
+                                                    <video controls preload="metadata" data-full="<?php echo htmlspecialchars($media['url']); ?>" data-type="video">
+                                                        <source src="<?php echo htmlspecialchars($media['url']); ?>" type="video/mp4">
+                                                        Your browser does not support the video tag.
+                                                    </video>
                                                 <?php else: ?>
-                                                    <div class="has-text-centered has-text-grey">[Private image — no accessible URL]</div>
+                                                    <img src="<?php echo htmlspecialchars($media['url']); ?>" data-full="<?php echo htmlspecialchars($media['url']); ?>" data-type="image" alt="Gallery photo" />
                                                 <?php endif; ?>
                                             </figure>
                                         </div>
@@ -457,49 +467,73 @@ if ($accessGranted) {
                 <button class="lightbox-prev" id="lightboxPrev" aria-label="Previous">‹</button>
                 <button class="lightbox-next" id="lightboxNext" aria-label="Next">›</button>
                 <a class="button lightbox-download" id="lightboxDownload" href="#" target="_blank" rel="noopener">Download</a>
-                <img src="" alt="Full size" />
+                <img src="" alt="Full size" style="display: none;" />
+                <video controls style="display: none; max-width: 90vw; max-height: 90vh;">
+                    <source src="" type="video/mp4">
+                </video>
             </div>
             <script>
                 const overlay = document.getElementById('lightbox');
                 const overlayImage = overlay.querySelector('img');
+                const overlayVideo = overlay.querySelector('video');
+                const overlayVideoSource = overlayVideo.querySelector('source');
                 const nextBtn = document.getElementById('lightboxNext');
                 const prevBtn = document.getElementById('lightboxPrev');
                 const closeBtn = document.getElementById('lightboxClose');
                 const downloadBtn = document.getElementById('lightboxDownload');
                 const downloadAllBtn = document.getElementById('downloadAllBtn');
-                const thumbs = Array.from(document.querySelectorAll('.gallery-grid img[data-full]'));
-                const images = thumbs.map(t => t.dataset.full).filter(Boolean);
+                const thumbs = Array.from(document.querySelectorAll('.gallery-grid img[data-full], .gallery-grid video[data-full]'));
+                const mediaItems = thumbs.map(t => ({url: t.dataset.full, type: t.dataset.type})).filter(m => m.url);
                 let currentIndex = 0;
-                const imagesLen = images.length;
+                const mediaLen = mediaItems.length;
                 thumbs.forEach((thumb, idx) => {
                     thumb.addEventListener('click', () => {
                         currentIndex = idx;
-                        overlayImage.src = images[currentIndex];
-                        downloadBtn.href = images[currentIndex] || '#';
+                        showMedia(currentIndex);
                         overlay.classList.add('active');
                     });
                 });
+                function showMedia(idx) {
+                    if (mediaLen === 0) return;
+                    const media = mediaItems[idx];
+                    if (media.type === 'video') {
+                        overlayImage.style.display = 'none';
+                        overlayVideo.style.display = 'block';
+                        overlayVideoSource.src = media.url;
+                        overlayVideo.load();
+                        downloadBtn.href = media.url || '#';
+                    } else {
+                        overlayVideo.style.display = 'none';
+                        overlayVideo.pause();
+                        overlayImage.style.display = 'block';
+                        overlayImage.src = media.url;
+                        downloadBtn.href = media.url || '#';
+                    }
+                }
                 function showIndex(i) {
-                    if (imagesLen === 0) return;
+                    if (mediaLen === 0) return;
                     let idx = i;
-                    if (idx < 0) idx = (idx % imagesLen + imagesLen) % imagesLen;
-                    if (idx >= imagesLen) idx = idx % imagesLen;
+                    if (idx < 0) idx = (idx % mediaLen + mediaLen) % mediaLen;
+                    if (idx >= mediaLen) idx = idx % mediaLen;
                     currentIndex = idx;
-                    overlayImage.src = images[currentIndex];
-                    downloadBtn.href = images[currentIndex] || '#';
+                    showMedia(currentIndex);
                 }
                 nextBtn.addEventListener('click', (e) => { e.stopPropagation(); showIndex(currentIndex + 1); });
                 prevBtn.addEventListener('click', (e) => { e.stopPropagation(); showIndex(currentIndex - 1); });
-                closeBtn.addEventListener('click', () => overlay.classList.remove('active'));
+                closeBtn.addEventListener('click', () => {
+                    overlay.classList.remove('active');
+                    overlayVideo.pause();
+                });
                 downloadBtn.setAttribute('download', '');
                 downloadBtn.addEventListener('click', (e) => {
-                    if (!images[currentIndex]) { e.preventDefault(); return; }
+                    if (!mediaItems[currentIndex]?.url) { e.preventDefault(); return; }
                     // Let the link act as download; for cross origin signed URLs this should download.
                 });
                 // Download All handled by server-side zip via anchor `download_all.php`
                 overlay.addEventListener('click', (e) => {
-                    if (e.target === overlay || e.target === overlayImage) {
+                    if (e.target === overlay) {
                         overlay.classList.remove('active');
+                        overlayVideo.pause();
                     }
                 });
                 document.addEventListener('keydown', (e) => {
