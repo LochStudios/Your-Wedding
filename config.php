@@ -49,10 +49,10 @@ $config = [
     'aws' => [
         'key' => $YOUR_WEDDING_AWS_KEY ?: '',
         'secret' => $YOUR_WEDDING_AWS_SECRET ?: '',
-        'region' => $YOUR_WEDDING_AWS_REGION ?: 'ap-southeast-2',
+        'region' => $YOUR_WEDDING_AWS_REGION ?: '',
         'bucket' => $YOUR_WEDDING_AWS_BUCKET ?: '',
         's3_url' => $YOUR_WEDDING_AWS_S3_URL ?: '',
-        's3_endpoint' => $YOUR_WEDDING_AWS_S3_ENDPOINT ?: '',
+        's3_endpoint' => $YOUR_WEDDING_AWS_S3_ENDPOINT ?? '',
         's3_url_includes_bucket' => filter_var($YOUR_WEDDING_AWS_S3_URL_INCLUDES_BUCKET ?? false, FILTER_VALIDATE_BOOL),
         'sign_urls' => filter_var($YOUR_WEDDING_AWS_S3_SIGN_URLS ?? true, FILTER_VALIDATE_BOOL),
     ],

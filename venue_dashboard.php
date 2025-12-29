@@ -12,7 +12,7 @@ if ($isAdmin && !empty($_GET['as_venue'])) {
     // Admin acting as venue
     $actingVenueId = (int) $_GET['as_venue'];
     $conn = get_db_connection();
-    $stmt = $conn->prepare('SELECT name FROM venues WHERE id = ? LIMIT 1');
+    $stmt = $conn->prepare('SELECT venue_name FROM venues WHERE id = ? LIMIT 1');
     $stmt->bind_param('i', $actingVenueId);
     $stmt->execute();
     $stmt->bind_result($actingVenueName);

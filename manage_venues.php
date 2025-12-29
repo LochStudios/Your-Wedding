@@ -18,10 +18,9 @@ $venues = [];
 $stmt = $conn->query("
     SELECT 
         v.id, 
-        v.name, 
+        v.venue_name, 
         v.username, 
         v.s3_folder_prefix,
-        v.tier,
         v.created_at,
         (SELECT COUNT(*) FROM clients WHERE venue_id = v.id) AS client_count,
         (SELECT COUNT(*) FROM albums WHERE venue_id = v.id) AS album_count
@@ -81,9 +80,8 @@ $stmt->close();
                                 <thead>
                                     <tr>
                                         <th>ID</th>
-                                        <th>Name</th>
+                                        <th>Venue Name</th>
                                         <th>Username</th>
-                                        <th>Tier</th>
                                         <th>S3 Prefix</th>
                                         <th>Clients</th>
                                         <th>Albums</th>
@@ -95,16 +93,8 @@ $stmt->close();
                                     <?php foreach ($venues as $venue): ?>
                                         <tr>
                                             <td><?php echo (int) $venue['id']; ?></td>
-                                            <td><strong><?php echo htmlspecialchars($venue['name']); ?></strong></td>
+                                            <td><strong><?php echo htmlspecialchars($venue['venue_name']); ?></strong></td>
                                             <td><code><?php echo htmlspecialchars($venue['username']); ?></code></td>
-                                            <td>
-                                                <span class="tag <?php 
-                                                    echo $venue['tier'] === 'Enterprise' ? 'is-primary' : 
-                                                         ($venue['tier'] === 'Professional' ? 'is-info' : 'is-light'); 
-                                                ?>">
-                                                    <?php echo htmlspecialchars($venue['tier'] ?? 'Basic'); ?>
-                                                </span>
-                                            </td>
                                             <td><?php echo htmlspecialchars($venue['s3_folder_prefix'] ?: 'N/A'); ?></td>
                                             <td><?php echo (int) $venue['client_count']; ?></td>
                                             <td><?php echo (int) $venue['album_count']; ?></td>
