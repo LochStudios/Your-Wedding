@@ -179,15 +179,8 @@ if (isset($_SESSION['venue_flash'])) {
         <link rel="stylesheet" href="style.css?v=<?php echo uuidv4(); ?>" />
     </head>
     <body>
-        <nav class="navbar">
-            <div class="navbar-brand">
-                <a class="navbar-item" href="/"><strong>LochStudios</strong></a>
-            </div>
-            <div class="navbar-menu">
-                <div class="navbar-start">
-                    <a class="navbar-item" href="venue_dashboard.php">Dashboard</a>
-                </div>
-            </div>
+        <?php include_once __DIR__ . '/venue_nav.php'; ?>
+        <section class="section full-bleed full-height">
         </nav>
         <section class="section full-bleed full-height">
             <div class="container is-fluid">

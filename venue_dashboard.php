@@ -116,39 +116,7 @@ if (!empty($_GET['delete_album'])) {
         <link rel="stylesheet" href="style.css?v=<?php echo uuidv4(); ?>" />
     </head>
     <body>
-        <nav class="navbar" role="navigation">
-            <div class="navbar-brand">
-                <a class="navbar-item" href="/"><strong>LochStudios</strong></a>
-            </div>
-            <div class="navbar-menu">
-                <div class="navbar-start">
-                    <a class="navbar-item" href="venue_dashboard.php<?php echo $venueParam; ?>">Dashboard</a>
-                    <?php if ($canCreateClients): ?>
-                        <a class="navbar-item" href="venue_create_client.php<?php echo $venueParam; ?>">Create Client</a>
-                    <?php endif; ?>
-                    <?php if ($canCreateAlbums): ?>
-                        <a class="navbar-item" href="venue_create_album.php<?php echo $venueParam; ?>">Create Gallery</a>
-                    <?php endif; ?>
-                    <?php if ($canUploadPhotos): ?>
-                        <a class="navbar-item" href="venue_upload.php<?php echo $venueParam; ?>">Upload Photos</a>
-                    <?php endif; ?>
-                    <?php if ($isVenueOwner): ?>
-                        <a class="navbar-item" href="venue_team.php<?php echo $venueParam; ?>">Manage Team</a>
-                    <?php endif; ?>
-                </div>
-                <div class="navbar-end">
-                    <div class="navbar-item">
-                        <div class="buttons">
-                            <?php if ($isAdmin && $actingVenueId !== null): ?>
-                                <a class="button is-light" href="manage_venues.php">Stop Acting</a>
-                            <?php else: ?>
-                                <a class="button is-light" href="venue_logout.php">Sign Out</a>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </nav>
+        <?php include_once __DIR__ . '/venue_nav.php'; ?>
         <section class="section full-bleed full-height">
             <div class="container is-fluid">
                 <h1 class="title">Welcome, <?php echo htmlspecialchars($venueName); ?></h1>

@@ -11,6 +11,10 @@ if ($isAdmin && !empty($_GET['as_venue'])) {
     // Admin acting as venue
     $actingVenueId = (int) $_GET['as_venue'];
     $venueId = $actingVenueId;
+    // Admin has all permissions
+    $canCreateClients = true;
+    $canCreateAlbums = true;
+    $canUploadPhotos = true;
 } elseif ($isTeamMember) {
     // Check permissions for team members
     if (empty($_SESSION['can_create_clients'])) {
@@ -19,8 +23,15 @@ if ($isAdmin && !empty($_GET['as_venue'])) {
         exit;
     }
     $venueId = (int) $_SESSION['venue_id'];
+    $canCreateClients = $_SESSION['can_create_clients'] ?? false;
+    $canCreateAlbums = $_SESSION['can_create_albums'] ?? false;
+    $canUploadPhotos = $_SESSION['can_upload_photos'] ?? false;
 } elseif ($isVenueOwner) {
     $venueId = (int) $_SESSION['venue_logged_in'];
+    // Venue owners have all permissions
+    $canCreateClients = true;
+    $canCreateAlbums = true;
+    $canUploadPhotos = true;
 } else {
     header('Location: venue_login.php');
     exit;
@@ -127,16 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <link rel="stylesheet" href="style.css?v=<?php echo uuidv4(); ?>" />
     </head>
     <body>
-        <nav class="navbar">
-            <div class="navbar-brand">
-                <a class="navbar-item" href="/"><strong>LochStudios</strong></a>
-            </div>
-            <div class="navbar-menu">
-                <div class="navbar-start">
-                    <a class="navbar-item" href="venue_dashboard.php">Dashboard</a>
-                </div>
-            </div>
-        </nav>
+        <?php include_once __DIR__ . '/venue_nav.php'; ?>
         <section class="section full-bleed full-height">
             <div class="container is-fluid">
                 <h1 class="title"><?php echo $editing ? 'Edit Client' : 'Create Client'; ?></h1>
