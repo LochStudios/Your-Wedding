@@ -142,27 +142,33 @@ if ($actingClientId !== null) {
                                             <tr>
                                                 <?php if ($isAdmin && $actingClientId === null): ?>
                                                     <th>Client</th>
+                                                    <th>Gallery Link</th>
+                                                    <th>S3 Folder</th>
+                                                    <th>Created</th>
+                                                <?php else: ?>
+                                                    <th>Gallery Name</th>
+                                                    <th>Gallery Link</th>
                                                 <?php endif; ?>
-                                                <th>Slug</th>
-                                                <th>S3 Folder</th>
-                                                <th>Created</th>
                                                 <th>Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <?php if (empty($albums)): ?>
                                                 <tr>
-                                                    <td colspan="5">No albums yet. Click create to get started.</td>
+                                                    <td colspan="<?php echo ($isAdmin && $actingClientId === null) ? '5' : '3'; ?>">No albums yet.<?php if ($isAdmin && $actingClientId === null): ?> Click create to get started.<?php endif; ?></td>
                                                 </tr>
                                             <?php else: ?>
                                                 <?php foreach ($albums as $album): ?>
                                                     <tr>
                                                         <?php if ($isAdmin && $actingClientId === null): ?>
                                                             <td><?php echo htmlspecialchars($album['client_display'] ?? ($album['client_names'] ?? '')); ?></td>
+                                                            <td><code><?php echo htmlspecialchars($album['slug']); ?></code></td>
+                                                            <td><?php echo htmlspecialchars($album['s3_folder_path']); ?></td>
+                                                            <td><?php echo htmlspecialchars($album['created_at']); ?></td>
+                                                        <?php else: ?>
+                                                            <td><?php echo htmlspecialchars($album['client_names']); ?></td>
+                                                            <td><code><?php echo htmlspecialchars($album['slug']); ?></code></td>
                                                         <?php endif; ?>
-                                                        <td><code><?php echo htmlspecialchars($album['slug']); ?></code></td>
-                                                        <td><?php echo htmlspecialchars($album['s3_folder_path']); ?></td>
-                                                        <td><?php echo htmlspecialchars($album['created_at']); ?></td>
                                                         <td>
                                                             <div class="buttons">
                                                                 <?php if ($isAdmin && $actingClientId === null): ?>
