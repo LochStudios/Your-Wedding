@@ -25,6 +25,10 @@ require_once __DIR__ . '/config.php';
                             <span class="icon"><i class="fas fa-user"></i></span>
                             <span>Client Login</span>
                         </a>
+                        <a class="button is-primary is-medium" href="/venue_login.php">
+                            <span class="icon"><i class="fas fa-building"></i></span>
+                            <span>Venue Portal</span>
+                        </a>
                         <a class="button is-light is-medium" href="#contact">
                             <span class="icon"><i class="fas fa-envelope"></i></span>
                             <span>Contact Us</span>
@@ -188,11 +192,12 @@ require_once __DIR__ . '/config.php';
         <footer class="footer">
             <div class="content has-text-centered">
                 <p>&copy; <?php echo date('Y'); ?> LochStudios· Your Wedding Gallery Experience</p>
-                <?php if (is_admin_portal_visible()): ?>
-                    <p class="footer-links">
-                        <a href="/login.php">Admin Portal</a>
-                    </p>
-                <?php endif; ?>
+                <p class="footer-links">
+                    <?php if (is_admin_portal_visible()): ?>
+                        <a href="/login.php">Admin Portal</a> ·
+                    <?php endif; ?>
+                    <a href="/venue_login.php">Venue Portal</a>
+                </p>
             </div>
         </footer>
     </body>

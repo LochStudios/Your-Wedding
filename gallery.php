@@ -111,13 +111,14 @@ if ($slug === '') {
 }
 
 $conn = get_db_connection();
-$stmt = $conn->prepare("SELECT a.client_id, a.client_names, a.album_password, a.s3_folder_path, COALESCE(c.display_name, CONCAT(c.title1, ' & ', c.title2, ' ', c.family_name)) AS client_display_name FROM albums a LEFT JOIN clients c ON c.id = a.client_id WHERE a.slug = ? LIMIT 1");
+$stmt = $conn->prepare("SELECT a.id, a.client_id, a.client_names, a.album_password, a.s3_folder_path, COALESCE(c.display_name, CONCAT(c.title1, ' & ', c.title2, ' ', c.family_name)) AS client_display_name FROM albums a LEFT JOIN clients c ON c.id = a.client_id WHERE a.slug = ? LIMIT 1");
 $stmt->bind_param('s', $slug);
 $stmt->execute();
-$stmt->bind_result($clientId, $clientNames, $albumPassword, $s3FolderPath, $clientDisplayName);
+$stmt->bind_result($albumId, $clientId, $clientNames, $albumPassword, $s3FolderPath, $clientDisplayName);
 $album = null;
 if ($stmt->fetch()) {
     $album = [
+        'id' => $albumId,
         'client_id' => $clientId,
         'client_names' => $clientNames,
         'client_display_name' => $clientDisplayName,
@@ -274,6 +275,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 if ($accessGranted) {
+    // Track gallery view
+    $ipAddress = $_SERVER['REMOTE_ADDR'] ?? null;
+    $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
+    $trackStmt = $conn->prepare('INSERT INTO analytics (album_id, view_type, ip_address, user_agent) VALUES (?, ?, ?, ?)');
+    $viewType = 'gallery';
+    $trackStmt->bind_param('isss', $album['id'], $viewType, $ipAddress, $userAgent);
+    $trackStmt->execute();
+    $trackStmt->close();
     $s3 = get_s3_client();
     $bucket = get_aws_bucket();
     $galleryImages = [];

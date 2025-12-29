@@ -56,6 +56,13 @@ $config = [
         's3_url_includes_bucket' => filter_var($YOUR_WEDDING_AWS_S3_URL_INCLUDES_BUCKET ?? false, FILTER_VALIDATE_BOOL),
         'sign_urls' => filter_var($YOUR_WEDDING_AWS_S3_SIGN_URLS ?? true, FILTER_VALIDATE_BOOL),
     ],
+    'mail' => [
+        'host' => $YOUR_WEDDING_MAIL_HOST ?? '',
+        'username' => $YOUR_WEDDING_MAIL_USERNAME ?? '',
+        'password' => $YOUR_WEDDING_MAIL_PASSWORD ?? '',
+        'from_email' => 'no-reply@lochstudios.com',
+        'from_name' => 'Your Wedding Gallery',
+    ],
     'features' => [
         'admin_portal_visible' => filter_var($YOUR_WEDDING_ADMIN_PORTAL_VISIBLE ?? true, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? true,
     ],
@@ -109,7 +116,6 @@ CREATE TABLE IF NOT EXISTS admins (
     force_password_reset TINYINT(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 SQL;
-
     $albumSql = <<<'SQL'
 CREATE TABLE IF NOT EXISTS albums (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -120,8 +126,38 @@ CREATE TABLE IF NOT EXISTS albums (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 SQL;
-
     $conn->query($adminSql);
+    // Create venues table for enterprise customers who manage their own clients
+    $venueSql = <<<'SQL'
+CREATE TABLE IF NOT EXISTS venues (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    venue_name VARCHAR(255) NOT NULL,
+    username VARCHAR(191) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    contact_email VARCHAR(191) DEFAULT NULL,
+    contact_phone VARCHAR(50) DEFAULT NULL,
+    s3_folder_prefix VARCHAR(255) DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+SQL;
+    $conn->query($venueSql);
+    
+    // Create analytics table to track gallery and photo views
+    $analyticsSql = <<<'SQL'
+CREATE TABLE IF NOT EXISTS analytics (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    album_id INT NOT NULL,
+    view_type ENUM('gallery', 'photo') NOT NULL,
+    photo_key VARCHAR(511) DEFAULT NULL,
+    ip_address VARCHAR(45) DEFAULT NULL,
+    user_agent TEXT DEFAULT NULL,
+    viewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_album_viewed (album_id, viewed_at),
+    INDEX idx_album_type (album_id, view_type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+SQL;
+    $conn->query($analyticsSql);
+    
     // Create clients table for multi-gallery support (associates albums to clients)
     $clientSql = <<<'SQL'
 CREATE TABLE IF NOT EXISTS clients (
@@ -139,12 +175,30 @@ CREATE TABLE IF NOT EXISTS clients (
 SQL;
     $conn->query($clientSql);
     ensure_client_columns($conn);
+    // Ensure clients have venue_id column to link clients to venues
+    try {
+        $result = $conn->query("SHOW COLUMNS FROM clients LIKE 'venue_id'");
+        if ($result && $result->num_rows === 0) {
+            $conn->query('ALTER TABLE clients ADD COLUMN venue_id INT DEFAULT NULL');
+        }
+    } catch (mysqli_sql_exception $e) {
+        // ignore
+    }
     $conn->query($albumSql);
     // Ensure albums have client_id column to link galleries to a client account (nullable)
     try {
         $result = $conn->query("SHOW COLUMNS FROM albums LIKE 'client_id'");
         if ($result && $result->num_rows === 0) {
             $conn->query('ALTER TABLE albums ADD COLUMN client_id INT DEFAULT NULL');
+        }
+    } catch (mysqli_sql_exception $e) {
+        // ignore
+    }
+    // Ensure albums have venue_id column to link galleries to venues
+    try {
+        $result = $conn->query("SHOW COLUMNS FROM albums LIKE 'venue_id'");
+        if ($result && $result->num_rows === 0) {
+            $conn->query('ALTER TABLE albums ADD COLUMN venue_id INT DEFAULT NULL');
         }
     } catch (mysqli_sql_exception $e) {
         // ignore
