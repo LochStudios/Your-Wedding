@@ -15,7 +15,7 @@ html, body {
 }
 
 .section {
-    background: transparent;
+    background: linear-gradient(135deg, rgba(10, 20, 30, 1), rgba(15, 25, 38, 1));
     color: #f4f6fb;
 }
 

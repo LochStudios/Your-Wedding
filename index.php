@@ -21,12 +21,6 @@ require_once __DIR__ . '/config.php';
                     <h1 class="title">Your Wedding</h1>
                     <p class="subtitle is-4">Celebrate the photos LochStudios captured for you with a private gallery for every couple.</p>
                     <div class="buttons mt-5">
-                        <?php if (is_admin_portal_visible()): ?>
-                            <a class="button is-primary is-medium" href="/login.php">
-                                <span class="icon"><i class="fas fa-user-lock"></i></span>
-                                <span>Admins Only</span>
-                            </a>
-                        <?php endif; ?>
                         <a class="button is-light is-medium" href="/login.php?type=client">
                             <span class="icon"><i class="fas fa-user"></i></span>
                             <span>Client Login</span>
@@ -51,7 +45,7 @@ require_once __DIR__ . '/config.php';
                     </div>
                     <div class="column">
                         <figure class="image is-4by3">
-                            <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80" alt="Wedding moment" />
+                            <img src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=80" alt="Wedding moment" />
                         </figure>
                     </div>
                 </div>
