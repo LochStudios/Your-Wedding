@@ -80,7 +80,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     </div>
                                 </div>
                             </form>
-                            <p class="has-text-grey mt-4">
+                            <hr />
+                            <p class="has-text-centered">
+                                <a href="venue_team_login.php">Team Member Login</a>
+                            </p>
+                            <p class="has-text-grey mt-4 has-text-centered">
                                 <a href="/">Back to Home</a>
                             </p>
                         </div>

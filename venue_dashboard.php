@@ -1,15 +1,57 @@
 <?php
 require_once __DIR__ . '/config.php';
 
-// Ensure venue is logged in
-if (empty($_SESSION['venue_logged_in'])) {
+// Determine current role and whether admin is acting as venue
+$isAdmin = !empty($_SESSION['admin_logged_in']);
+$isTeamMember = !empty($_SESSION['venue_team_logged_in']);
+$isVenueOwner = !empty($_SESSION['venue_logged_in']);
+$actingVenueId = null;
+$actingVenueName = null;
+
+if ($isAdmin && !empty($_GET['as_venue'])) {
+    // Admin acting as venue
+    $actingVenueId = (int) $_GET['as_venue'];
+    $conn = get_db_connection();
+    $stmt = $conn->prepare('SELECT name FROM venues WHERE id = ? LIMIT 1');
+    $stmt->bind_param('i', $actingVenueId);
+    $stmt->execute();
+    $stmt->bind_result($actingVenueName);
+    $stmt->fetch();
+    $stmt->close();
+    $venueId = $actingVenueId;
+    $venueName = $actingVenueName ?? 'Venue';
+    // Admin acting as venue has all permissions
+    $canCreateClients = true;
+    $canCreateAlbums = true;
+    $canUploadPhotos = true;
+    $canViewAnalytics = true;
+} elseif ($isTeamMember) {
+    $venueId = (int) $_SESSION['venue_id'];
+    $venueName = $_SESSION['venue_team_name'] ?? 'Team Member';
+    $canCreateClients = $_SESSION['can_create_clients'] ?? false;
+    $canCreateAlbums = $_SESSION['can_create_albums'] ?? false;
+    $canUploadPhotos = $_SESSION['can_upload_photos'] ?? false;
+    $canViewAnalytics = $_SESSION['can_view_analytics'] ?? false;
+} elseif ($isVenueOwner) {
+    $venueId = (int) $_SESSION['venue_logged_in'];
+    $venueName = $_SESSION['venue_name'] ?? 'Venue';
+    // Venue owners have all permissions
+    $canCreateClients = true;
+    $canCreateAlbums = true;
+    $canUploadPhotos = true;
+    $canViewAnalytics = true;
+} else {
     header('Location: venue_login.php');
     exit;
 }
 
-$venueId = (int) $_SESSION['venue_logged_in'];
-$venueName = $_SESSION['venue_name'] ?? 'Venue';
-$conn = get_db_connection();
+if (!isset($conn)) {
+    $conn = get_db_connection();
+}
+
+// Build query parameter for passing venue context in links
+$venueParam = ($isAdmin && $actingVenueId !== null) ? '?as_venue=' . $actingVenueId : '';
+$venueParamAmp = ($isAdmin && $actingVenueId !== null) ? '&as_venue=' . $actingVenueId : '';
 
 $flashMessage = $_SESSION['venue_flash'] ?? null;
 if (isset($_SESSION['venue_flash'])) {
@@ -80,15 +122,28 @@ if (!empty($_GET['delete_album'])) {
             </div>
             <div class="navbar-menu">
                 <div class="navbar-start">
-                    <a class="navbar-item" href="venue_dashboard.php">Dashboard</a>
-                    <a class="navbar-item" href="venue_create_client.php">Create Client</a>
-                    <a class="navbar-item" href="venue_create_album.php">Create Gallery</a>
-                    <a class="navbar-item" href="venue_upload.php">Upload Photos</a>
+                    <a class="navbar-item" href="venue_dashboard.php<?php echo $venueParam; ?>">Dashboard</a>
+                    <?php if ($canCreateClients): ?>
+                        <a class="navbar-item" href="venue_create_client.php<?php echo $venueParam; ?>">Create Client</a>
+                    <?php endif; ?>
+                    <?php if ($canCreateAlbums): ?>
+                        <a class="navbar-item" href="venue_create_album.php<?php echo $venueParam; ?>">Create Gallery</a>
+                    <?php endif; ?>
+                    <?php if ($canUploadPhotos): ?>
+                        <a class="navbar-item" href="venue_upload.php<?php echo $venueParam; ?>">Upload Photos</a>
+                    <?php endif; ?>
+                    <?php if ($isVenueOwner): ?>
+                        <a class="navbar-item" href="venue_team.php<?php echo $venueParam; ?>">Manage Team</a>
+                    <?php endif; ?>
                 </div>
                 <div class="navbar-end">
                     <div class="navbar-item">
                         <div class="buttons">
-                            <a class="button is-light" href="venue_logout.php">Sign Out</a>
+                            <?php if ($isAdmin && $actingVenueId !== null): ?>
+                                <a class="button is-light" href="manage_venues.php">Stop Acting</a>
+                            <?php else: ?>
+                                <a class="button is-light" href="venue_logout.php">Sign Out</a>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -98,6 +153,12 @@ if (!empty($_GET['delete_album'])) {
             <div class="container is-fluid">
                 <h1 class="title">Welcome, <?php echo htmlspecialchars($venueName); ?></h1>
                 <p class="subtitle">Manage your clients and galleries</p>
+                <?php if ($isAdmin && $actingVenueId !== null): ?>
+                    <div class="notification is-info">
+                        You are viewing the site as <strong><?php echo htmlspecialchars($venueName); ?></strong> (Venue ID: <?php echo $actingVenueId; ?>). 
+                        <a href="manage_venues.php">Stop acting</a>.
+                    </div>
+                <?php endif; ?>
                 <?php if ($flashMessage): ?>
                     <div class="notification is-success"><?php echo htmlspecialchars($flashMessage); ?></div>
                 <?php endif; ?>

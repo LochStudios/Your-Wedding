@@ -1,12 +1,35 @@
 <?php
 require_once __DIR__ . '/config.php';
 
-if (empty($_SESSION['venue_logged_in'])) {
+// Determine current role and whether admin is acting as venue
+$isAdmin = !empty($_SESSION['admin_logged_in']);
+$isTeamMember = !empty($_SESSION['venue_team_logged_in']);
+$isVenueOwner = !empty($_SESSION['venue_logged_in']);
+$actingVenueId = null;
+
+if ($isAdmin && !empty($_GET['as_venue'])) {
+    // Admin acting as venue
+    $actingVenueId = (int) $_GET['as_venue'];
+    $venueId = $actingVenueId;
+} elseif ($isTeamMember) {
+    // Check permissions for team members
+    if (empty($_SESSION['can_create_albums'])) {
+        $_SESSION['venue_flash'] = 'You do not have permission to create or edit galleries.';
+        header('Location: venue_dashboard.php');
+        exit;
+    }
+    $venueId = (int) $_SESSION['venue_id'];
+} elseif ($isVenueOwner) {
+    $venueId = (int) $_SESSION['venue_logged_in'];
+} else {
     header('Location: venue_login.php');
     exit;
 }
 
-$venueId = (int) $_SESSION['venue_logged_in'];
+// Build query parameter for passing venue context in links
+$venueParam = ($isAdmin && $actingVenueId !== null) ? '?as_venue=' . $actingVenueId : '';
+$venueParamAmp = ($isAdmin && $actingVenueId !== null) ? '&as_venue=' . $actingVenueId : '';
+
 $conn = get_db_connection();
 $errors = [];
 $message = '';

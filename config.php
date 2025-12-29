@@ -141,7 +141,24 @@ CREATE TABLE IF NOT EXISTS venues (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 SQL;
     $conn->query($venueSql);
-    
+    // Create venue_team table for team members who can access venue account
+    $venueTeamSql = <<<'SQL'
+CREATE TABLE IF NOT EXISTS venue_team (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    venue_id INT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(191) NOT NULL,
+    username VARCHAR(191) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    can_create_clients TINYINT(1) DEFAULT 1,
+    can_create_albums TINYINT(1) DEFAULT 1,
+    can_upload_photos TINYINT(1) DEFAULT 1,
+    can_view_analytics TINYINT(1) DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_venue (venue_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+SQL;
+    $conn->query($venueTeamSql);
     // Create analytics table to track gallery and photo views
     $analyticsSql = <<<'SQL'
 CREATE TABLE IF NOT EXISTS analytics (

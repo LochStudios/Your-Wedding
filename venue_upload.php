@@ -1,14 +1,49 @@
 <?php
 require_once __DIR__ . '/config.php';
 
-if (empty($_SESSION['venue_logged_in'])) {
+// Determine current role and whether admin is acting as venue
+$isAdmin = !empty($_SESSION['admin_logged_in']);
+$isTeamMember = !empty($_SESSION['venue_team_logged_in']);
+$isVenueOwner = !empty($_SESSION['venue_logged_in']);
+$actingVenueId = null;
+$venueName = '';
+
+if ($isAdmin && !empty($_GET['as_venue'])) {
+    // Admin acting as venue
+    $actingVenueId = (int) $_GET['as_venue'];
+    $venueId = $actingVenueId;
+    $conn = get_db_connection();
+    $stmt = $conn->prepare('SELECT name FROM venues WHERE id = ? LIMIT 1');
+    $stmt->bind_param('i', $actingVenueId);
+    $stmt->execute();
+    $stmt->bind_result($venueName);
+    $stmt->fetch();
+    $stmt->close();
+    $venueName = $venueName ?? 'Venue';
+} elseif ($isTeamMember) {
+    // Check permissions for team members
+    if (empty($_SESSION['can_upload_photos'])) {
+        $_SESSION['venue_flash'] = 'You do not have permission to upload photos.';
+        header('Location: venue_dashboard.php');
+        exit;
+    }
+    $venueId = (int) $_SESSION['venue_id'];
+    $venueName = $_SESSION['venue_team_name'] ?? 'Team Member';
+} elseif ($isVenueOwner) {
+    $venueId = (int) $_SESSION['venue_logged_in'];
+    $venueName = $_SESSION['venue_name'] ?? 'Venue';
+} else {
     header('Location: venue_login.php');
     exit;
 }
 
-$venueId = (int) $_SESSION['venue_logged_in'];
-$venueName = $_SESSION['venue_name'] ?? 'Venue';
-$conn = get_db_connection();
+// Build query parameter for passing venue context in links
+$venueParam = ($isAdmin && $actingVenueId !== null) ? '?as_venue=' . $actingVenueId : '';
+$venueParamAmp = ($isAdmin && $actingVenueId !== null) ? '&as_venue=' . $actingVenueId : '';
+
+if (!isset($conn)) {
+    $conn = get_db_connection();
+}
 
 // Get venue's s3_folder_prefix
 $venuePrefix = '';
