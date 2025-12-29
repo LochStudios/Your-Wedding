@@ -110,7 +110,7 @@ require_once __DIR__ . '/config.php';
                                 <ul>
                                     <li>Custom gallery links and passwords</li>
                                     <li>Priority support from LochStudios</li>
-                                    <li>Monthly reports on who's viewing</li>
+                                    <li>Monthly report on photo views</li>
                                 </ul>
                             </div>
                         </div>
